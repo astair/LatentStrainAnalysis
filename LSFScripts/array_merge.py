@@ -6,71 +6,71 @@ import argparse
 
 # FUNC
 def interface():
-	parser = argparse.ArgumentParser(description="Creates command line to merge and split paired files.")
+    parser = argparse.ArgumentParser(description="Creates command line to merge and split paired files.")
 
-	parser.add_argument('-1',
-						required=True,
-						dest='READS_1',
-						nargs='+',
-						type=str,
-						metavar='<reads_1>',
-						help='Comma separated list of R1 reads.')    
+    parser.add_argument('-1',
+                        required=True,
+                        dest='READS_1',
+                        nargs='+',
+                        type=str,
+                        metavar='<reads_1>',
+                        help='Comma separated list of R1 reads.')    
 
-	parser.add_argument('-2',
-						required=True,
-						dest='READS_2',
-						nargs='+',
-						type=str,
-						metavar='<reads_2>',
-						help='Comma separated list of R2 reads.')
+    parser.add_argument('-2',
+                        required=True,
+                        dest='READS_2',
+                        nargs='+',
+                        type=str,
+                        metavar='<reads_2>',
+                        help='Comma separated list of R2 reads.')
 
-	parser.add_argument('-s',
-						dest='SINGLETS',
-						nargs='+',
-						type=str,
-						metavar='<singlets>',
-						help='Comma separated list of unpaired reads.')
+    parser.add_argument('-s',
+                        dest='SINGLETS',
+                        nargs='+',
+                        type=str,
+                        metavar='<singlets>',
+                        help='Comma separated list of unpaired reads.')
 
-	parser.add_argument('-r',
-						dest='task_rank',
-						type=int,
-						help='Task rank of the current job.')
+    parser.add_argument('-r',
+                        dest='task_rank',
+                        type=int,
+                        help='Task rank of the current job.')
 
-	parser.add_argument('-o', '--output-dir',
-						required=True,
-						dest='out',
-						type=str,
-						metavar='<output-directory>',
-						help='Output directory for splitting the reads.')
+    parser.add_argument('-o', '--output-dir',
+                        required=True,
+                        dest='out',
+                        type=str,
+                        metavar='<output-directory>',
+                        help='Output directory for splitting the reads.')
 
-	args = parser.parse_args()
-	return args
+    args = parser.parse_args()
+    return args
 
 
 
 if __name__ == "__main__":
-	args = interface()
+    args = interface()
 
-	reads_1 = sorted(args.READS_1)
-	reads_2 = sorted(args.READS_2)
-	reads_single = sorted(args.SINGLETS)
+    reads_1 = sorted(args.READS_1)
+    reads_2 = sorted(args.READS_2)
+    reads_single = sorted(args.SINGLETS)
 
-	task_rank = args.task_rank
+    task_rank = args.task_rank
 
-	output_dir = args.out
-	if not output_dir.endswith('/'):
-		output_dir += '/'
+    output_dir = args.out
+    if not output_dir.endswith('/'):
+        output_dir += '/'
 
-	curr_reads_1 = reads_1[task_rank]
-	curr_reads_2 = reads_2[task_rank]
+    curr_reads_1 = reads_1[task_rank]
+    curr_reads_2 = reads_2[task_rank]
 
-	try:
-		curr_single = reads_single[task_rank]
-	except IndexError:
-		curr_single = None
+    try:
+        curr_single = reads_single[task_rank]
+    except IndexError:
+        curr_single = None
 
-	# This I can do better, but this should work for now
-	o = output_dir + curr_reads_1.split('/')[-1].split('.')[0]
+    # This I can do better, but this should work for now
+    o = output_dir + curr_reads_1.split('/')[-1].split('.')[0]
 
-	os.system('python LSFScripts/merge_and_split_pair_files.py -1 %s -2 %s -s %s -o %s' % (p1,p2,s,o))
-	os.system('python LSFScripts/merge_and_split_pair_files.py -s %s -o %s' % (s[:-1] + '2',o))
+    os.system('python LSFScripts/merge_and_split_pair_files.py -1 %s -2 %s -s %s -o %s' % (p1,p2,s,o))
+    os.system('python LSFScripts/merge_and_split_pair_files.py -s %s -o %s' % (s[:-1] + '2',o))
