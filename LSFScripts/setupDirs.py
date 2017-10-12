@@ -31,15 +31,15 @@ def interface():
 
 
 SplitInput_string = """#!/bin/bash
-#BSUB -J SplitInput[1-{1}]
+#BSUB -J SplitInput[1-{0}]
 #BSUB -o Logs/SplitInput-Out-%I.out
 #BSUB -e Logs/SplitInput-Err-%I.err
 #BSUB -q week
 #BSUB -W 23:58
 echo Date: `date`
 t1=`date +%s`
-sleep ${LSB_JOBINDEX}
-python LSFScripts/array_merge.py -r ${LSB_JOBINDEX} -i {2} -o original_reads/
+sleep ${{LSB_JOBINDEX}}
+array_merge.py -r ${{LSB_JOBINDEX}} -i {1} -o original_reads/
 [ $? -eq 0 ] || echo 'JOB FAILURE: $?'
 echo Date: `date`
 t2=`date +%s`
@@ -58,6 +58,6 @@ if __name__ == "__main__":
 
 	for d in dir_names:
 		os.system('mkdir {0}'.format(d))
-	f = open('LSFScripts/SplitInput_ArrayJob.q','w')
-	f.write(SplitInput_string.format(n, input_dir))
+	f = open('{0}/SplitInput_ArrayJob.q'.format(output_dir),'w')
+	f.write(SplitInput_string.format(sample_num, input_dir))
 	f.close()
