@@ -51,11 +51,16 @@ def interface():
 
 SplitInput_string = """#!/bin/bash
 #SBATCH -J SplitInput[1-{0}]
+#SBATCH --array=1-{0}
 #SBATCH -o {1}Logs/SplitInput-Out.out
 #SBATCH -e {1}Logs/SplitInput-Err.err
 
 echo Date: `date`
 t1=`date +%s`
+
+### REMOVE LATER:
+source "/Users/Jonas/Documents/Msc-Biotechnologie/masterarbeit-zeller/nile/scripts/local_config.txt"
+PATH=$PATH:${{HOME}}/apps/LatentStrainAnalysis:${{HOME}}/apps/LatentStrainAnalysis/LSFScripts
 
 array_merge.py -r ${{LSB_JOBINDEX}} -1 {2} -2 {3} -s {4} -o original_reads/
 
@@ -65,12 +70,16 @@ tdiff=`echo 'scale=3;('$t2'-'$t1')/3600' | bc`
 echo 'Total time:  '$tdiff' hours'
 """
 
+# The Line:
+# PATH=$PATH:${HOME}/apps/LatentStrainAnalysis:${HOME}/apps/LatentStrainAnalysis/LSFScripts
+# is a temporary addition to mimic module load behavior.
+
 # MAIN
 if __name__ == "__main__":
 	args = interface()
 
-	reads_1 = args.READS_1
-	reads_2 = args.READS_2
+	reads_1 = " ".join(args.READS_1)
+	reads_2 = " ".join(args.READS_2)
 	reads_single = args.SINGLETS
 
 	output_dir = args.out
@@ -82,7 +91,8 @@ if __name__ == "__main__":
 	dir_names = ['Logs','original_reads','hashed_reads','cluster_vectors','read_partitions', 'scripts']
 
 	for d in dir_names:
-		os.system('mkdir {0}{1}'.format(output_dir, d))
+		if not os.path.exists(output_dir + d):
+			os.system('mkdir {0}{1}'.format(output_dir, d))
 
 	f = open('{0}scripts/SplitInput_ArrayJob.q'.format(output_dir),'w')
 	f.write(SplitInput_string.format(sample_num, output_dir, reads_1, reads_2, reads_single))

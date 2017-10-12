@@ -1,62 +1,76 @@
 #!/usr/bin/env python
 
-import glob
 import os
 import sys
 import argparse
 
 # FUNC
 def interface():
-    parser = argparse.ArgumentParser(description="Sets up the directories necessary for the pipeline in <output-dir> and creates the 'SplitInput_ArrayJob.q' script from the input veriables.")
+	parser = argparse.ArgumentParser(description="Creates command line to merge and split paired files.")
 
-    parser.add_argument('-i', '--input-dir',
-    					required=True,
-    					dest='input',
-                        type=str,
-                        metavar='<input-dir>',
-                        help='Directory with reads to process.')
+	parser.add_argument('-1',
+						required=True,
+						dest='READS_1',
+						nargs='+',
+						type=str,
+						metavar='<reads_1>',
+						help='Comma separated list of R1 reads.')    
 
-    parser.add_argument('-n',
-    					dest='n',
-    					default='?',
-                        type=int,
-                        metavar='<sample-num>',
-                        help='Number of samples.')
+	parser.add_argument('-2',
+						required=True,
+						dest='READS_2',
+						nargs='+',
+						type=str,
+						metavar='<reads_2>',
+						help='Comma separated list of R2 reads.')
 
-    parser.add_argument('-o', '--output-dir',
-    					required=True,
-                        dest='out',
-                        type=str,
-                        metavar='<output-directory>',
-                        help='Output directory for the pipeline.')
+	parser.add_argument('-s',
+						dest='SINGLETS',
+						nargs='+',
+						type=str,
+						metavar='<singlets>',
+						help='Comma separated list of unpaired reads.')
 
-    args = parser.parse_args()
-    return args
+	parser.add_argument('-r',
+						dest='task_rank',
+						type=int,
+						help='Task rank of the current job.')
+
+	parser.add_argument('-o', '--output-dir',
+						required=True,
+						dest='out',
+						type=str,
+						metavar='<output-directory>',
+						help='Output directory for splitting the reads.')
+
+	args = parser.parse_args()
+	return args
 
 
 
 if __name__ == "__main__":
 	args = interface()
 
-	input_dir = args.input
-	if not input_dir.endswith('/'):
-		input_dir += '/'
+	reads_1 = sorted(args.READS_1)
+	reads_2 = sorted(args.READS_2)
+	reads_single = sorted(args.SINGLETS)
+
+	task_rank = args.task_rank
 
 	output_dir = args.out
 	if not output_dir.endswith('/'):
 		output_dir += '/'
 
+	curr_reads_1 = reads_1[task_rank]
+	curr_reads_2 = reads_2[task_rank]
 
-		elif opt in ('-r','--filerank'):
-			fr = int(arg) - 1
+	try:
+		curr_single = reads_single[task_rank]
+	except IndexError:
+		curr_single = None
 
-	FP = glob.glob(os.path.join(inputdir,'*.fastq.1'))
-	# FP is list of filenames
-	FP.sort()
-	fp = FP[fr]
-	p1 = fp
-	p2 = fp[:-1] + '2'
-	s = fp[:fp.index('.fastq')] + '.single.fastq.1'
-	o = outputdir + fp[fp.rfind('/')+1:fp.index('.fastq')]
+	# This I can do better, but this should work for now
+	o = output_dir + curr_reads_1.split('/')[-1].split('.')[0]
+
 	os.system('python LSFScripts/merge_and_split_pair_files.py -1 %s -2 %s -s %s -o %s' % (p1,p2,s,o))
 	os.system('python LSFScripts/merge_and_split_pair_files.py -s %s -o %s' % (s[:-1] + '2',o))
