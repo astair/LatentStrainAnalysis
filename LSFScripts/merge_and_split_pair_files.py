@@ -46,14 +46,14 @@ if __name__ == "__main__":
 	try:
 		opts, args = getopt.getopt(sys.argv[1:],'h1:2:s:o:',["mate1=","mate2=","sing=","outputdir="])
 	except:
-		print help_message
+		print(help_message)
 		sys.exit(2)
 	pair1 = None
 	pair2 = None
 	sing = None
 	for opt, arg in opts:
 		if opt in ('-h','--help'):
-			print help_message
+			print(help_message)
 			sys.exit()
 		elif opt in ('-1','--mate1'):
 			pair1 = arg
@@ -79,5 +79,5 @@ if __name__ == "__main__":
 	if sing != None:
 		rw = split_singletons(sing,out)
 		singletons_written += rw
-	print 'mates written: %d, singletons written: %d, total reads written: %d' % (mates_written,singletons_written,mates_written+singletons_written)
+	print('mates written: {0}, singletons written: {1}, total reads written: {2}'.format(mates_written,singletons_written,mates_written+singletons_written))
 	os.system('touch '+out+'.fastq')
