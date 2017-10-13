@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import sys
-import getopt
+import argparse
 import glob
 import os
 import json
@@ -15,26 +15,41 @@ import json
 # MAKE SURE TO SET TMP FILE LOCATION
 # Check to make sure there are no files remaining in cluster_vectors/PARTITION_NUM/
 
-help_message = 'usage example: python create_jobs.py -j HashReads -i /project/home/'
-if __name__ == "__main__":
-	job = 'none specified'
-	try:
-		opts, args = getopt.getopt(sys.argv[1:],'hj:i:',["--jobname","inputdir="])
-	except:
-		print help_message
-		sys.exit(2)
-	for opt, arg in opts:
-		if opt in ('-h','--help'):
-			print help_message
-			sys.exit()
-		elif opt in ('-j',"--jobname"):
-			job = arg
-		elif opt in ('-i','--inputdir'):
-			inputdir = arg
-			if inputdir[-1] != '/':
-				inputdir += '/'
+# FUNC
+def interface():
+    parser = argparse.ArgumentParser(description="Creates jobs.")
 
-	with open('job_config.json', 'r') as f:
+    parser.add_argument('-j',
+                        required=True,
+                        dest='JOB',
+                        type=str,
+                        metavar='<job_name>',
+                        help='Name of the Job to be executed.')    
+
+    parser.add_argument('-i',
+                        required=True,
+                        dest='IN',
+                        type=str,
+                        metavar='<input_dir>',
+                        help='Input directory for job.')
+
+    
+
+    args = parser.parse_args()
+    return args
+
+# MAIN
+if __name__ == "__main__":
+	args = interface()
+
+	job = args.JOB
+
+	input_dir = args.IN
+	if not input_dir.endswith('/'):
+		input_dir += '/'
+
+	script_dir = os.path.dirname(__file__)
+	with open(script_dir + '/job_config.json', 'r') as f:
 		config = json.load(f)
 
 	JobParams = config['JobParams']
@@ -42,11 +57,10 @@ if __name__ == "__main__":
 
 	try:
 		params = JobParams[job]
-	except:
-		print job+' is not a known job.'
-		print 'known jobs:',JobParams.keys()
-		print help_message
-		sys.exit(2)
+	except KeyError:
+		print('\n"' + job + '" is not a valid job name. Known jobs are:')
+		print('\n'.join([jobs for jobs in JobParams.keys()]) + '\n')
+		raise 
 
 
 	if params.get('array',None) != None:
@@ -61,7 +75,7 @@ if __name__ == "__main__":
 			FP = [None]*len(FP)*abs(params['array'][2])
 		array_size = str(len(FP))
 		params['header'][0] += array_size+']'
-		print job+' array size will be '+array_size
+		print(job+' array size will be '+array_size)
 	f = open(inputdir+'LSFScripts/'+params['outfile'],'w')
 	f.write('\n'.join(CommonElements['header']) + '\n')
 	f.write('\n'.join(params['header']).replace('PROJECT_HOME/',inputdir) + '\n')
