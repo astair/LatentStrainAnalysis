@@ -32,8 +32,8 @@ def interface():
                         help='Comma separated list of unpaired reads.')
 
     parser.add_argument('-n',
+                        required=True,                        
                         dest='n',
-                        default='?',
                         type=int,
                         metavar='<sample-num>',
                         help='Number of samples.')

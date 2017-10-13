@@ -69,8 +69,7 @@ if __name__ == "__main__":
     except IndexError:
         curr_single = None
 
-    # This I can do better, but this should work for now
-    o = output_dir + curr_reads_1.split('/')[-1].split('.')[0]
+    # This I can do better, but this should work for now:
+    out = output_dir + curr_reads_1.split('/')[-1].split('.')[0]
+    os.system('merge_and_split_pair_files.py -1 {0} -2 {1} -s {2} -o {3}'.format(curr_reads_1, curr_reads_2, curr_single, out))
 
-    os.system('python LSFScripts/merge_and_split_pair_files.py -1 %s -2 %s -s %s -o %s' % (p1,p2,s,o))
-    os.system('python LSFScripts/merge_and_split_pair_files.py -s %s -o %s' % (s[:-1] + '2',o))
