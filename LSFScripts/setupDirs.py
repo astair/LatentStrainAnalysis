@@ -62,7 +62,7 @@ t1=`date +%s`
 source "/Users/Jonas/Documents/Msc-Biotechnologie/masterarbeit-zeller/nile/scripts/local_config.txt"
 PATH=$PATH:${{HOME}}/apps/LatentStrainAnalysis:${{HOME}}/apps/LatentStrainAnalysis/LSFScripts
 
-array_merge.py -r ${{LSB_JOBINDEX}} -1 {2} -2 {3} -s {4} -o original_reads/
+array_merge.py -r ${{$SLURM_ARRAY_TASK_ID}} -1 {2} -2 {3} -s {4} -o original_reads/
 
 echo Date: `date`
 t2=`date +%s`
@@ -92,7 +92,7 @@ if __name__ == "__main__":
 
     for d in dir_names:
         if not os.path.exists(output_dir + d):
-            os.system('mkdir {0}{1}'.format(output_dir, d))
+            os.system('mkdir ' + output_dir + d)
 
     f = open(output_dir + 'scripts/SplitInput_ArrayJob.q', 'w')
     f.write(SplitInput_string.format(sample_num, output_dir, reads_1, reads_2, reads_single))

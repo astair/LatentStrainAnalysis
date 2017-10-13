@@ -55,7 +55,7 @@ if __name__ == "__main__":
     reads_2 = sorted(args.READS_2)
     reads_single = sorted(args.SINGLETS)
 
-    task_rank = args.task_rank
+    task_rank = args.task_rank - 1
 
     output_dir = args.out
     if not output_dir.endswith('/'):
