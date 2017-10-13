@@ -94,6 +94,6 @@ if __name__ == "__main__":
         if not os.path.exists(output_dir + d):
             os.system('mkdir {0}{1}'.format(output_dir, d))
 
-    f = open('{0}scripts/SplitInput_ArrayJob.q'.format(output_dir),'w')
+    f = open(output_dir + 'scripts/SplitInput_ArrayJob.q', 'w')
     f.write(SplitInput_string.format(sample_num, output_dir, reads_1, reads_2, reads_single))
     f.close()

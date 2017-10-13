@@ -61,8 +61,15 @@ if __name__ == "__main__":
     if not output_dir.endswith('/'):
         output_dir += '/'
 
-    curr_reads_1 = reads_1[task_rank]
-    curr_reads_2 = reads_2[task_rank]
+    try:
+        curr_reads_1 = reads_1[task_rank]
+    except IndexError:
+        curr_reads_1 = None    
+
+    try:
+        curr_reads_2 = reads_2[task_rank]
+    except IndexError:
+        curr_reads_2 = None    
 
     try:
         curr_single = reads_single[task_rank]
