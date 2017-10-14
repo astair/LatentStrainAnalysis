@@ -108,6 +108,6 @@ if __name__ == "__main__":
         rw = split_singletons(reads_single, out)
         singletons_written += rw
 
-    print('mates written: {0}, singletons written: {1}, total reads written: {2}'.format(mates_written,singletons_written,mates_written+singletons_written))
+    print('mates written: {0}, singletons written: {1}, total reads written: {2}'.format(mates_written, singletons_written, mates_written + singletons_written))
 
     os.system('touch ' + out + '.fastq')

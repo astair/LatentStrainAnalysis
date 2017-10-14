@@ -51,9 +51,8 @@ if __name__ == "__main__":
 	script_dir = os.path.dirname(__file__)
 	with open(script_dir + '/job_config.json', 'r') as f:
 		config = json.load(f)
-
-	JobParams = config['JobParams']
-	CommonElements = config['CommonElements']
+		JobParams = config['JobParams']
+		CommonElements = config['CommonElements']
 
 	try:
 		params = JobParams[job]

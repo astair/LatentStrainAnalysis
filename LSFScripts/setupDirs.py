@@ -88,12 +88,12 @@ if __name__ == "__main__":
 
     sample_num = args.n
 
-    dir_names = ['Logs','original_reads','hashed_reads','cluster_vectors','read_partitions', 'scripts']
+    dir_names = ['Logs','original_reads','hashed_reads','cluster_vectors','read_partitions', 'jobs']
 
     for d in dir_names:
         if not os.path.exists(output_dir + d):
             os.system('mkdir ' + output_dir + d)
 
-    f = open(output_dir + 'scripts/SplitInput_ArrayJob.q', 'w')
+    f = open(output_dir + 'jobs/SplitInput_ArrayJob.q', 'w')
     f.write(SplitInput_string.format(sample_num, output_dir, reads_1, reads_2, reads_single))
     f.close()
