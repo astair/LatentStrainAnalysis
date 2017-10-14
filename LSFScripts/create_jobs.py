@@ -61,25 +61,25 @@ if __name__ == "__main__":
 		print('\n'.join([jobs for jobs in JobParams.keys()]) + '\n')
 		raise 
 
-
-	if params.get('array',None) != None:
-		FP = glob.glob(os.path.join(inputdir+params['array'][0],params['array'][1]))
+	if params.get('array', None) is not None:
+		FP = glob.glob(os.path.join(inputdir + params['array'][0],params['array'][1]))
 		if len(params['array']) == 3:
-			FP = [fp[fp.rfind('/')+1:] for fp in FP]
+			FP = [fp[fp.rfind('/') + 1:] for fp in FP]
 			if params['array'][2] == -1:
-				suffix = params['array'][1].replace('*','').replace('.','')
+				suffix = params['array'][1].replace('*', '').replace('.', '')
 				FP = set([fp[:fp.index(suffix)] for fp in FP])
 			else:
 				FP = set([fp[:fp.index('.')] for fp in FP])
 			FP = [None]*len(FP)*abs(params['array'][2])
 		array_size = str(len(FP))
-		params['header'][0] += array_size+']'
-		print(job+' array size will be '+array_size)
-	f = open(inputdir+'LSFScripts/'+params['outfile'],'w')
-	f.write('\n'.join(CommonElements['header']) + '\n')
-	f.write('\n'.join(params['header']).replace('PROJECT_HOME/',inputdir) + '\n')
-	f.write('\n'.join(CommonElements['body']) + '\n')
-	f.write('\n'.join(params['body']).replace('PROJECT_HOME/',inputdir) + '\n')
-	f.write('\n'.join(CommonElements['footer']) +'\n')
-	f.close()
+		params['header'][0] += array_size + ']'
+		print(job + ' array size will be ' + array_size)
+
+	with open(inputdir+'LSFScripts/' + params['outfile'], 'w') as f:
+		f.write('\n'.join(CommonElements['header']) + '\n')
+		f.write('\n'.join(params['header']).replace('PROJECT_HOME/', inputdir) + '\n')
+		f.write('\n'.join(CommonElements['body']) + '\n')
+		f.write('\n'.join(params['body']).replace('PROJECT_HOME/', inputdir) + '\n')
+		f.write('\n'.join(CommonElements['footer']) +'\n')
+
 	
