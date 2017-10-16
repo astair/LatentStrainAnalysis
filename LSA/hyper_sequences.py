@@ -29,7 +29,7 @@ class Hyper_Sequences(LSA):
 	def set_wheels(self,wheels=200):
 		random_kmer_path = self.input_path + 'random_kmers.fastq'
 		Wheels = []
-		for w in xrange(wheels):
+		for w in range(wheels):
 			Wheels += self.one_wheel(w,random_kmer_path)
 		Wheels.sort()
 		f = open(self.output_path+'Wheels.txt','w')
