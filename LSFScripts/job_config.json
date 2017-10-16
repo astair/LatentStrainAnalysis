@@ -8,7 +8,7 @@
                 "#SBATCH -o {0}Logs/CreateHash-Out.out",
                 "#SBATCH -e {0}Logs/CreateHash-Err.err"],
             "body": [
-                "python create_hash.py -i {0}original_reads/ -o {0}hashed_reads/ -k 33 -s 31"]},
+                "create_hash.py -i {0}original_reads/ -o {0}hashed_reads/ -k 33 -s 31"]},
 
         "HashReads": {
             "outfile": "HashReads_ArrayJob.q",

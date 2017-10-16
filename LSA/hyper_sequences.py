@@ -1,5 +1,5 @@
 import numpy as np
-import cPickle
+import _pickle as cPickle
 from operator import itemgetter
 from LSA import LSA
 

@@ -57,8 +57,8 @@ class Fastq_Reader(Cluster_Analysis,Hash_Counting,Hyper_Sequences,LSA):
 						I = newline.join(read_strings[:-1])
 						B = np.fromstring(read_strings[-1][10:-2],dtype=np.uint64,sep=',')
 						yield (I,B[0],B[1:])
-					except Exception,err:
-						print str(err)
+					except Exception as err:
+						print(str(err))
 					r += 1
 				read_strings = []
 			read_strings.append(line)
@@ -104,8 +104,8 @@ class Fastq_Reader(Cluster_Analysis,Hash_Counting,Hyper_Sequences,LSA):
 									i += 1
 								yield {'_id': I,'s': S[:i+self.kmer_size],'q': Q[:i+self.kmer_size]}
 						r += 1
-					except Exception,err:
-						#print 'warning: fastq read_generator error',str(err)
+					except Exception as err:
+						#print('warning: fastq read_generator error', str(err))
 						pass
 
 	def set_quality_codes(self,f):
@@ -148,9 +148,9 @@ class Fastq_Reader(Cluster_Analysis,Hash_Counting,Hyper_Sequences,LSA):
 				try:
 					g.write(self.rand_kmer(f))
 					kf += 1
-				except Exception,err:
+				except Exception as err:
 					fails += 1
-					print str(err)
+					print(str(err))
 					if fails > 100:
 						break
 			f.close()

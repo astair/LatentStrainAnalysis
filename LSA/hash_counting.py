@@ -17,7 +17,7 @@ class Hash_Counting(LSA):
 		if multi_files_fraction != None:
 			FP = glob.glob(os.path.join(self.output_path,fileprefix+'.*.hashq.*'))
 			if len(FP) == 0:
-				print 'WARNING: no files like %s.*.hashq.* found' % fileprefix
+				print('WARNING: no files like %s.*.hashq.* found' % fileprefix)
 			# SUPER DUMB to hardcode the number of fractions (5)
 			FPsplits = [FP[i::5] for i in range(5)]
 			FP = FPsplits[multi_files_fraction]
@@ -32,11 +32,11 @@ class Hash_Counting(LSA):
 					try:
 						for b in a[2]:
 							H[b] = min(65535,H[b]+1)
-					except Exception,err:
-						print Exception,str(err)
+					except Exception as err:
+						print(Exception,str(err))
 				f.close()
-			except Exception,err:
-				print 'ERROR processing '+filename,Exception,str(err)
+			except Exception as err:
+				print('ERROR processing '+filename,Exception,str(err))
 		if len(FP) > 0:
 			f0 = open(outfile,'wb')
 			f0.write(H)
@@ -47,7 +47,7 @@ class Hash_Counting(LSA):
 		H = (c_uint16*2**self.hash_size)()
 		FP = glob.glob(os.path.join(self.output_path,fileprefix+'.count.hash.*'))
 		if len(FP) == 0:
-			print 'WARNING: no files like %s.count.hash.* found' % fileprefix
+			print('WARNING: no files like %s.count.hash.* found' % fileprefix)
 		for fp in FP:
 			H1 = self.open_count_hash(fp)
 			# unfortunately we can't just add, due to overflow
@@ -115,7 +115,7 @@ class Hash_Counting(LSA):
 					if read_id not in Reads:
 						Reads[read_id] = (l_info,[])
 					Reads[read_id][1].append((float(l_score),l_id))
-				except Exception,err:
+				except Exception as err:
 					pass
 			f.close()
 		for read_id,values in Reads.iteritems():

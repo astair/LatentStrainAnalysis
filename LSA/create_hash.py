@@ -45,7 +45,7 @@ def interface():
 
 # MAIN
 if __name__ == "__main__":
-	args = interface()
+    args = interface()
 
     input_dir = os.path.abspath(args.IN)
     if not input_dir.endswith('/'):
@@ -55,10 +55,13 @@ if __name__ == "__main__":
     if not output_dir.endswith('/'):
         output_dir += '/'
 
-	hashobject = Fastq_Reader(inputdir,outputdir,new_hash=(h_size,k_size))
-	total_rand_kmers = k_size * h_size * 2
-	hashobject.rand_kmers_for_wheel(total_rand_kmers)
-	hashobject.set_wheels(wheels=1)
-	os.system('rm %s/random_kmers.fastq' % inputdir)
-	with open(outputdir + 'hashParts.txt','w') as f:
-		f.write('%d\n' % (2**h_size / 10**6 + 1))
+    k_size = args.KMER
+    h_size = args.HASH
+
+    hashobject = Fastq_Reader(input_dir, output_dir, new_hash=(h_size, k_size))
+    total_rand_kmers = k_size * h_size * 2
+    hashobject.rand_kmers_for_wheel(total_rand_kmers)
+    hashobject.set_wheels(wheels=1)
+    os.system('rm %s/random_kmers.fastq' % input_dir)
+    with open(outputdir + 'hashParts.txt','w') as f:
+        f.write('%d\n' % (2**h_size / 10**6 + 1))
