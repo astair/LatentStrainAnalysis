@@ -42,7 +42,7 @@ def interface():
 
 def merge_pairs(f1, f2, f0):
     reads_written = 0
-    for i in range(0,2*10**6,10**5):
+    for i in range(0, 2 * 10**6, 10**5):
         r1 = [f1.readline() for _ in range(10**5)]
         r2 = [f2.readline() for _ in range(10**5)]
         try:
@@ -53,11 +53,11 @@ def merge_pairs(f1, f2, f0):
             r1 = ['']
             r2 = ['']
             pass
-        for j in range(0,len(r1),4):
-            f0.writelines(r1[j:j+4])
-            f0.writelines(r2[j:j+4])
+        for j in range(0, len(r1), 4):
+            f0.writelines(r1[j:j + 4])
+            f0.writelines(r2[j:j + 4])
             reads_written += 2
-    return len(r1[0]),reads_written
+    return len(r1[0]), reads_written
 
 
 def split_singletons(sing_path, out_prefix):
@@ -67,8 +67,8 @@ def split_singletons(sing_path, out_prefix):
     f1 = open(sing_path)
 
     for line in f1:
-        if i%4000000 == 0:
-            f0 = open(out_prefix+'.singleton.fastq'+split_suffix[ss],'w')
+        if i % 4000000 == 0:
+            f0 = open(out_prefix + '.singleton.fastq' + split_suffix[ss], 'w')
             ss += 1
         f0.write(line)
         reads_written += .25

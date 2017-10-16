@@ -31,7 +31,7 @@ def interface():
                         dest='IN',
                         type=str,
                         metavar='<input_dir>',
-                        help='Input directory for job.')
+                        help='The project directory.')
 
     
 
@@ -40,46 +40,50 @@ def interface():
 
 # MAIN
 if __name__ == "__main__":
-	args = interface()
+    args = interface()
 
-	job = args.JOB
+    job = args.JOB
 
-	input_dir = args.IN
-	if not input_dir.endswith('/'):
-		input_dir += '/'
+    input_dir = os.path.abspath(args.IN)
+    if not input_dir.endswith('/'):
+        input_dir += '/'
 
-	script_dir = os.path.dirname(__file__)
-	with open(script_dir + '/job_config.json', 'r') as f:
-		config = json.load(f)
-		JobParams = config['JobParams']
-		CommonElements = config['CommonElements']
+    script_dir = os.path.dirname(os.path.realpath(__file__))
+    print(script_dir)
+    with open(script_dir + '/job_config.json', 'r') as f:
+        config = json.load(f)
+        JobParams = config['JobParams']
+        CommonElements = config['CommonElements']
 
-	try:
-		params = JobParams[job]
-	except KeyError:
-		print('\n"' + job + '" is not a valid job name. Known jobs are:')
-		print('\n'.join([jobs for jobs in JobParams.keys()]) + '\n')
-		raise 
+    try:
+        params = JobParams[job]
+    except KeyError:
+        print('\n"' + job + '" is not a valid job name. Known jobs are:')
+        print('\n'.join([jobs for jobs in JobParams.keys()]) + '\n')
+        raise 
 
-	if params.get('array', None) is not None:
-		FP = glob.glob(os.path.join(inputdir + params['array'][0],params['array'][1]))
-		if len(params['array']) == 3:
-			FP = [fp[fp.rfind('/') + 1:] for fp in FP]
-			if params['array'][2] == -1:
-				suffix = params['array'][1].replace('*', '').replace('.', '')
-				FP = set([fp[:fp.index(suffix)] for fp in FP])
-			else:
-				FP = set([fp[:fp.index('.')] for fp in FP])
-			FP = [None]*len(FP)*abs(params['array'][2])
-		array_size = str(len(FP))
-		params['header'][0] += array_size + ']'
-		print(job + ' array size will be ' + array_size)
 
-	with open(inputdir+'LSFScripts/' + params['outfile'], 'w') as f:
-		f.write('\n'.join(CommonElements['header']) + '\n')
-		f.write('\n'.join(params['header']).replace('PROJECT_HOME/', inputdir) + '\n')
-		f.write('\n'.join(CommonElements['body']) + '\n')
-		f.write('\n'.join(params['body']).replace('PROJECT_HOME/', inputdir) + '\n')
-		f.write('\n'.join(CommonElements['footer']) +'\n')
+    # This is still a mess
+    if params.get('array', None) is not None:
+        FP = glob.glob(os.path.join(input_dir + params['array'][0],params['array'][1]))
 
-	
+        if len(params['array']) == 3:
+            FP = [fp[fp.rfind('/') + 1:] for fp in FP]
+            if params['array'][2] == -1:
+                suffix = params['array'][1].replace('*', '').replace('.', '')
+                FP = set([fp[:fp.index(suffix)] for fp in FP])
+            else:
+                FP = set([fp[:fp.index('.')] for fp in FP])
+            FP = [None]*len(FP)*abs(params['array'][2])
+        array_size = str(len(FP))
+        params['header'][0] += array_size + ']'
+        print(job + ' array size will be ' + array_size)
+
+    with open(input_dir + 'jobs/' + params['outfile'], 'w') as f:
+        f.write('\n'.join(CommonElements['header']) + '\n')
+        f.write('\n'.join(params['header']).format(input_dir) + '\n')
+        f.write('\n'.join(CommonElements['body']) + '\n')
+        f.write('\n'.join(params['body']).format(input_dir) + '\n')
+        f.write('\n'.join(CommonElements['footer']) +'\n')
+
+    

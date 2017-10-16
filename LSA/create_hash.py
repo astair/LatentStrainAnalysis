@@ -1,36 +1,64 @@
 #!/usr/bin/env python
 
-import sys,getopt,os
+import sys
+import argparse 
+import os
 from fastq_reader import Fastq_Reader
 
-help_message = "usage example: python create_hash.py -i /project/home/original_reads/ -o /project/home/hashed_reads/ -k kmer_size -s hash_size"
+# FUNC
+def interface():
+    parser = argparse.ArgumentParser(description="Creates the hash function.")
+
+    parser.add_argument('-i',
+                        required=True,
+                        dest='IN',
+                        type=str,
+                        metavar='<input_dir>',
+                        help='The inoput directory.')
+
+    parser.add_argument('-o',
+                        required=True,
+                        dest='OUT',
+                        type=str,
+                        metavar='<output_dir>',
+                        help='The output directory.')
+
+    parser.add_argument('-k',
+                        required=True,
+                        dest='KMER',
+                        type=int,
+                        metavar='<kmersize>',
+                        help='Kmer size.')
+
+    parser.add_argument('-s',
+                        required=True,
+                        dest='HASH',
+                        type=int,
+                        metavar='<hashsize>',
+                        help='Hash size.')
+
+    
+
+    args = parser.parse_args()
+    return args
+
+
+# MAIN
 if __name__ == "__main__":
-	try:
-		opts, args = getopt.getopt(sys.argv[1:],'hi:o:k:s:',["inputdir=","outputdir=","kmersize=","hashsize="])
-	except:
-		print help_message
-		sys.exit(2)
-	for opt, arg in opts:
-		if opt in ('-h','--help'):
-			print help_message
-			sys.exit()
-		elif opt in ('-i','--inputdir'):
-			inputdir = arg
-			if inputdir[-1] != '/':
-				inputdir += '/'
-		elif opt in ('-o','--outputdir'):
-			outputdir = arg
-			if outputdir[-1] != '/':
-				outputdir += '/'
-		elif opt in ('-k','--kmersize'):
-			k_size = int(arg)
-		elif opt in ('-s','--hashsize'):
-			h_size = int(arg)
+	args = interface()
+
+    input_dir = os.path.abspath(args.IN)
+    if not input_dir.endswith('/'):
+        input_dir += '/'
+
+    output_dir = os.path.abspath(args.IN)
+    if not output_dir.endswith('/'):
+        output_dir += '/'
+
 	hashobject = Fastq_Reader(inputdir,outputdir,new_hash=(h_size,k_size))
-	total_rand_kmers = k_size*h_size*2
+	total_rand_kmers = k_size * h_size * 2
 	hashobject.rand_kmers_for_wheel(total_rand_kmers)
 	hashobject.set_wheels(wheels=1)
 	os.system('rm %s/random_kmers.fastq' % inputdir)
-	f = open(outputdir + 'hashParts.txt','w')
-	f.write('%d\n' % (2**h_size/10**6 + 1))
-	f.close()
+	with open(outputdir + 'hashParts.txt','w') as f:
+		f.write('%d\n' % (2**h_size / 10**6 + 1))
