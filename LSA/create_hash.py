@@ -62,6 +62,6 @@ if __name__ == "__main__":
     total_rand_kmers = k_size * h_size * 2
     hashobject.rand_kmers_for_wheel(total_rand_kmers)
     hashobject.set_wheels(wheels=1)
-    os.system('rm ' + input_dir + 'random_kmers.fastq')
+    os.remove(input_dir + 'random_kmers.fastq')
     with open(output_dir + 'hashParts.txt','w') as f:
         f.write('{0}\n'.format(2**h_size / 10**6 + 1))

@@ -1,3 +1,4 @@
 .Ulysses-Group.plist
 *test*
 __pycache__
+*_old_*

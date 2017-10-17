@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 from random import randint
 import glob,os
 import numpy as np
@@ -7,12 +5,6 @@ from LSA import LSA
 from hyper_sequences import Hyper_Sequences
 from hash_counting import Hash_Counting
 from cluster_analysis import Cluster_Analysis
-import Fastq as Fq
-
-invalid_message = ''''The following read record is not valid:
-    File: {0}
-    ID: {1}
-    Position: {2}'''
 
 class Fastq_Reader(Cluster_Analysis,Hash_Counting,Hyper_Sequences,LSA):
 
@@ -31,7 +23,6 @@ class Fastq_Reader(Cluster_Analysis,Hash_Counting,Hyper_Sequences,LSA):
         else:
             self.hash_size = new_hash[0]
             self.kmer_size = new_hash[1]
-
 
     # A VERY HACKED METHOD FOR DETERMINING READ PAIR ID NAMEOLOGY (ie readid/1,readid/2 vs readid 1,readid 2)
     def id_type(self,f):
@@ -78,10 +69,10 @@ class Fastq_Reader(Cluster_Analysis,Hash_Counting,Hyper_Sequences,LSA):
         self.set_quality_codes(file_object)
         line = 'dummyline'
         r = 0
-        while line and r < max_reads:
+        while (line != '') and (r < max_reads):
             line = file_object.readline()
             if line:
-                if line.startswith('@'):
+                if line[0] == '@':
                     try:
                         # ASSUMING READ PAIRS ARE SPLIT INTO THEIR OWN LINES
                         verbose_id = line
@@ -113,14 +104,14 @@ class Fastq_Reader(Cluster_Analysis,Hash_Counting,Hyper_Sequences,LSA):
                                     i += 1
                                 yield {'_id': I,'s': S[:i+self.kmer_size],'q': Q[:i+self.kmer_size]}
                         r += 1
-                    except Exception:
-                        # print('warning: fastq read_generator error')
+                    except Exception as err:
+                        #print('warning: fastq read_generator error', str(err))
                         pass
 
     def set_quality_codes(self,f):
         last = f.tell()
         L = [f.readline() for _ in range(4000)]
-        f.seek(last)    
+        f.seek(last)
         L = [l for l in L if l]
         x = [sum([1 for l in L[i::4] if l[0]=='+']) for i in range(4)]
         x = x.index(max(x))+1
@@ -139,54 +130,49 @@ class Fastq_Reader(Cluster_Analysis,Hash_Counting,Hyper_Sequences,LSA):
             self.quality_codes = dict([(chr(x),x-64) for x in range(64-5,64+63)])
 
     def rand_kmers_for_wheel(self,total_kmers):
-        read_files = glob.glob(os.path.join(self.input_path, '*.fastq.*'))
-        if len(read_files) > 100:
+        RP = glob.glob(os.path.join(self.input_path,'*.fastq.*'))
+        if len(RP) > 100:
             import random
-            read_files = random.sample(read_files, 100)
-        elif len(read_files) == 0:
+            RP = random.sample(RP,100)
+        elif len(RP) == 0:
             # single file per sample
-            read_files = glob.glob(os.path.join(self.input_path, '*.fastq'))
-
-        kmers_per_file = max(total_kmers / len(read_files), 5)
-
-        with open(self.input_path + 'random_kmers.fastq', 'w') as g:
-            kmer_count = 0
-            for file in read_files:
-                while kmer_count < total_kmers:
-                    written_kmers = 0
-                    fails = 0
-                    while written_kmers < kmers_per_file:
-                        try:
-                            g.write(self.rand_kmer(file))
-                            written_kmers += 1
-                        except Exception as err:
-                            fails += 1
-                            # print(str(err))
-                            if fails > 100:
-                                print('\nGeneration of kmers failed too many times\n') 
-                                raise
-                    kmer_count += written_kmers
+            RP = glob.glob(os.path.join(self.input_path,'*.fastq'))
+        kmers_per_file = max(total_kmers/len(RP),5)
+        g = open(self.input_path+'random_kmers.fastq','w')
+        total = 0
+        for rp in RP:
+            f = open(rp)
+            kf = 0
+            fails = 0
+            while kf < kmers_per_file:
+                try:
+                    g.write(self.rand_kmer(f))
+                    kf += 1
+                except Exception as err:
+                    fails += 1
+                    print(str(err))
+                    if fails > 100:
+                        break
+            f.close()
+            total += kf
+            if total > total_kmers:
+                break
+        g.close()
 
     def rand_kmer(self,f,max_seek=10**8):
-        too_short = 0
         while True:
-            try:
-                rand_i = randint(0, max_seek)
-                record = Fq.get_record(f, rand_i)
-                if record.is_valid() and len(record.seq) > self.kmer_size:
+            f.seek(randint(0,max_seek))
+            # ultra slow - partly due to setting qual scores every time
+            rs = [_ for _ in self.read_generator(f,max_reads=1,verbose_ids=True)]
+            if len(rs) > 0:
+                if len(rs[0]['s']) > self.kmer_size:
                     break
-            except:
-                try:
-                    if not record.is_valid():
-                        print(invalid_message.format(f, record.name, rand_i))
-                        continue
-                    if len(record.seq) > self.kmer_size:
-                        too_short += 1
-                except:
-                    max_seek /= 10
+            else:
+                max_seek /= 10
             if max_seek == 0:
-                raise Exception ('UUUPS, something went wrong while generating random kmers. Your read file might be too short or in the wrong format.')
-            if too_short > 10000:
-                raise Exception ('UUUPS, something went wrong while generating random kmers. All of the 10,000 reads that were sampled were shorter than the set kmer size ({0})'.format(self.kmer_size))
-        rand_pos = min(20, randint(0, len(record.seq) - self.kmer_size))
-        return '\n'.join([record.name, record.seq[rand_pos:rand_pos + self.kmer_size], record.name2, record.qual[rand_pos:rand_pos + self.kmer_size] + '\n']) 
+                raise Exception
+        ri = min(20,randint(0,len(rs[0]['s'])-self.kmer_size))
+        print(rs)
+        rs = rs[0]['_id'].split('\n')
+        print(rs)
+        return '\n'.join([rs[0],rs[1][ri:ri+self.kmer_size],rs[2],rs[3][ri:ri+self.kmer_size]+'\n'])
