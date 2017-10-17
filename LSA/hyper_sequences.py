@@ -32,7 +32,7 @@ class Hyper_Sequences(LSA):
 		for w in range(wheels):
 			Wheels += self.one_wheel(w,random_kmer_path)
 		Wheels.sort()
-		f = open(self.output_path+'Wheels.txt','w')
+		f = open(self.output_path+'Wheels.txt','wb')
 		cPickle.dump(Wheels,f)
 		f.close()
 
@@ -97,6 +97,7 @@ class Hyper_Sequences(LSA):
 
 	def affine_hull(self,linear_system):
 		# linear_system: d dimensions of n docs in this hyperplane
+		linear_system = list(linear_system)
 		for row in linear_system:
 			row.append(-1)
 		linear_system.append([0]*len(linear_system[0]))

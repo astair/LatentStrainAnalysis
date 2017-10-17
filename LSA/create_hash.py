@@ -51,7 +51,7 @@ if __name__ == "__main__":
     if not input_dir.endswith('/'):
         input_dir += '/'
 
-    output_dir = os.path.abspath(args.IN)
+    output_dir = os.path.abspath(args.OUT)
     if not output_dir.endswith('/'):
         output_dir += '/'
 
@@ -62,6 +62,6 @@ if __name__ == "__main__":
     total_rand_kmers = k_size * h_size * 2
     hashobject.rand_kmers_for_wheel(total_rand_kmers)
     hashobject.set_wheels(wheels=1)
-    os.system('rm %s/random_kmers.fastq' % input_dir)
-    with open(outputdir + 'hashParts.txt','w') as f:
-        f.write('%d\n' % (2**h_size / 10**6 + 1))
+    os.system('rm ' + input_dir + 'random_kmers.fastq')
+    with open(output_dir + 'hashParts.txt','w') as f:
+        f.write('{0}\n'.format(2**h_size / 10**6 + 1))

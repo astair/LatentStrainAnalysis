@@ -74,9 +74,9 @@ if __name__ == "__main__":
                 FP = set([fp[:fp.index(suffix)] for fp in FP])
             else:
                 FP = set([fp[:fp.index('.')] for fp in FP])
-            FP = [None]*len(FP)*abs(params['array'][2])
+            FP = [None] * len(FP) * abs(params['array'][2])
         array_size = str(len(FP))
-        params['header'][0] += array_size + ']'
+        params['header'][0:2] = [line.format(array_size=array_size) for line in params['header'][0:2]]
         print(job + ' array size will be ' + array_size)
 
     with open(input_dir + 'jobs/' + params['outfile'], 'w') as f:

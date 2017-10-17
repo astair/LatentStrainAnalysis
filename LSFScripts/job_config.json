@@ -14,14 +14,13 @@
             "outfile": "HashReads_ArrayJob.q",
             "array": ["original_reads/","*.fastq.*"],
             "header": [
-                "#SBATCH -J HashReads[1-",
-                "#SBATCH -o {0}Logs/HashReads-Out-%I.out",
-                "#SBATCH -e {0}Logs/HashReads-Err-%I.err",
-                "#SBATCH -q hour",
-                "#SBATCH -W 3:56",
+                "#SBATCH -J HashReads[1-{array_size}]",
+                "#SBATCH --array=1-{array_size}",
+                "#SBATCH -o {0}Logs/HashReads-Out.out",
+                "#SBATCH -e {0}Logs/HashReads-Err.err",
                 "#SBATCH -M 8"],
             "body": [
-                "sleep $(($SLURM_ARRAY_TASK_ID % 60))","python LSA/hash_fastq_reads.py -r ${LSB_JOBINDEX} -i {0}original_reads/ -o {0}hashed_reads/"]},
+                "sleep $(($SLURM_ARRAY_TASK_ID % 60))","hash_fastq_reads.py -r ${{SLURM_ARRAY_TASK_ID}} -i {0}original_reads/ -o {0}hashed_reads/"]},
 
         "MergeHash": {
             "outfile": "MergeHash_ArrayJob.q",
@@ -30,8 +29,7 @@
                 "#SBATCH -J MergeHash[1-",
                 "#SBATCH -o {0}Logs/MergeHash-Out-%I.out",
                 "#SBATCH -e {0}Logs/MergeHash-Err-%I.err",
-                "#SBATCH -q week",
-                "#SBATCH -W 53:58",
+                "#SBATCH -t 53:58",
                 "#SBATCH -R 'rusage[mem=4]'",
                 "#SBATCH -M 8"],
             "body": [
@@ -46,7 +44,7 @@
                 "#SBATCH -o {0}Logs/CombineFractions-Out-%I.out",
                 "#SBATCH -e {0}Logs/CombineFractions-Err-%I.err",
                 "#SBATCH -q week",
-                "#SBATCH -W 23:58",
+                "#SBATCH -t 23:58",
                 "#SBATCH -R 'rusage[mem=8]'",
                 "#SBATCH -M 20"],
             "body": [
@@ -60,7 +58,7 @@
                 "#SBATCH -o {0}Logs/GlobalWeights-Out.out",
                 "#SBATCH -e {0}Logs/GlobalWeights-Err.err",
                 "#SBATCH -q week",
-                "#SBATCH -W 71:10",
+                "#SBATCH -t 71:10",
                 "#SBATCH -R 'rusage[mem=25]'",
                 "#SBATCH -M 75"],
             "body": [
@@ -74,7 +72,7 @@
                 "#SBATCH -o {0}Logs/KmerCorpus-Out-%I.out",
                 "#SBATCH -e {0}Logs/KmerCorpus-Err-%I.err",
                 "#SBATCH -q hour",
-                "#SBATCH -W 3:58",
+                "#SBATCH -t 3:58",
                 "#SBATCH -R 'rusage[mem=32]'",
                 "#SBATCH -M 45"],
             "body": [
@@ -123,7 +121,7 @@
                 "#SBATCH -o {0}Logs/KmerClusterParts-Out-%I.out",
                 "#SBATCH -e {0}Logs/KmerClusterParts-Err-%I.err",
                 "#SBATCH -q hour",
-                "#SBATCH -W 3:59",
+                "#SBATCH -t 3:59",
                 "#SBATCH -R 'rusage[mem=1:argon_io=3]'",
                 "#SBATCH -M 4"],
             "body": [
@@ -138,7 +136,7 @@
                 "#SBATCH -o {0}Logs/KmerClusterMerge-Out-%I.out",
                 "#SBATCH -e {0}Logs/KmerClusterMerge-Err-%I.err",
                 "#SBATCH -q hour",
-                "#SBATCH -W 3:59",
+                "#SBATCH -t 3:59",
                 "#SBATCH -R 'rusage[mem=1]'",
                 "#SBATCH -M 8"],
             "body": [
@@ -152,7 +150,7 @@
                 "#SBATCH -o {0}Logs/KmerClusterCols-Out.out",
                 "#SBATCH -e {0}Logs/KmerClusterCols-Err.err",
                 "#SBATCH -q flower",
-                "#SBATCH -W 71:58",
+                "#SBATCH -t 71:58",
                 "#SBATCH -R 'rusage[mem=40]'",
                 "#SBATCH -M 70"],
             "body": [
@@ -166,7 +164,7 @@
                 "#SBATCH -o {0}Logs/ReadPartitions-Out-%I.out",
                 "#SBATCH -e {0}Logs/ReadPartitions-Err-%I.err",
                 "#SBATCH -q week",
-                "#SBATCH -W 45:10",
+                "#SBATCH -t 45:10",
                 "#SBATCH -R 'rusage[mem=3:argon_io=3]'",
                 "#SBATCH -M 20"],
             "body": [
@@ -181,7 +179,7 @@
                 "#SBATCH -o {0}Logs/MergeIntermediatePartitions-Out-%I.out",
                 "#SBATCH -e {0}Logs/MergeIntermediatePartitions-Err-%I.err",
                 "#SBATCH -q hour",
-                "#SBATCH -W 1:55",
+                "#SBATCH -t 1:55",
                 "#SBATCH -M 2",
                 "#SBATCH -R 'rusage[argon_io=3]'"],
             "body": [
@@ -196,7 +194,7 @@
                 "#SBATCH -o {0}Logs/SplitPairs-Out-%I.out",
                 "#SBATCH -e {0}Logs/SplitPairs-Err-%I.err",
                 "#SBATCH -q hour",
-                "#SBATCH -W 3:59",
+                "#SBATCH -t 3:59",
                 "#SBATCH -R 'rusage[argon_io=3]'",
                 "#SBATCH -M 8"],
             "body": [
@@ -211,7 +209,7 @@
                 "#SBATCH -o {0}Logs/PhylerClassify-Out-%I.out",
                 "#SBATCH -e {0}Logs/PhylerClassify-Err-%I.err",
                 "#SBATCH -q hour",
-                "#SBATCH -W 3:55",
+                "#SBATCH -t 3:55",
                 "#SBATCH -M 4","source /broad/software/scripts/useuse",
                 "reuse BLAST"],
             "body": [
@@ -226,7 +224,7 @@
                 "#SBATCH -o {0}Logs/PhylerIdentify-Out-%I.out",
                 "#SBATCH -e {0}Logs/PhylerIdentify-Err-%I.err",
                 "#SBATCH -q hour",
-                "#SBATCH -W 3:55",
+                "#SBATCH -t 3:55",
                 "#SBATCH -M 2"],
             "body": [
                 "sleep $(($SLURM_ARRAY_TASK_ID % 60))",
@@ -239,7 +237,7 @@
                 "#SBATCH -o {0}Logs/PhylerSummary-Out.out",
                 "#SBATCH -e {0}Logs/PhylerSummary-Err.err",
                 "#SBATCH -q hour",
-                "#SBATCH -W 1:55",
+                "#SBATCH -t 1:55",
                 "#SBATCH -M 2"],
             "body": [
                 "python misc/phyler_summary.py -i {0}phyler/"]}
