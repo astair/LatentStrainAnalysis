@@ -35,11 +35,16 @@ def interface():
                         action='store_false',
                         help='Use this switch to turn off reverse complement.')
 
+    parser.add_argument('-s',
+                        dest='sep',
+                        default='/',
+                        help='This sets the separator for paired files. Default: "/".')
+
     args = parser.parse_args()
     return args
 
 # PAIRED READ FILES ARE ASSUMED TO BE SORTED
-def kmer_bins(b,A,pfx,outfile,type):
+def kmer_bins(b,A,pfx,outfile,type=2):
     if type == 1:
         # use this for readid 1, readid 2 pairs
         def get_id(a):
@@ -58,6 +63,7 @@ def kmer_bins(b,A,pfx,outfile,type):
     reads_hashed = 0
     for a in range(len(A)):
         read_id = get_id(A[a])
+        print(read_id)
         if read_id != current_id:
             if (len(bins) > 0) and (read_id[:-1] != current_id[:-1]):
                 for rp in pair:
@@ -98,7 +104,7 @@ if __name__ == "__main__":
 
     hashobject = Fastq_Reader(input_dir, output_dir)
     with open(hashobject.input_path + file_prefix + '.fastq' + file_split,'r') as f:
-        read_type = hashobject.id_type(f)
+        read_type = 2
         with gzip.open(hashobject.output_path + file_prefix + '.hashq' + file_split + '.gz', 'wb') as g:
             hashobject.hpfx = hashobject.hpfx + str(hashobject.kmer_size)+','
             A = []

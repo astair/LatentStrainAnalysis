@@ -33,6 +33,14 @@ class FastqRecord(object):
         val_plus = self.name2 == '+'
         return val_id and val_len and val_qual and val_plus
 
+class ComplexFastqRecord(object):
+    """Fastq object with name and sequence
+    """
+
+    def __init__(self, name, coordinates):
+        self.name = name
+        self.coords = coordinates
+
 
 # FUNC
 def fastq_parser(infile):
@@ -69,3 +77,23 @@ def open_gz(infile, mode="r"):
         return gzip.open(infile, mode=mode)
     else:
         return open(infile, mode=mode)
+
+def set_quality_codes(infile):
+    fastq = fastq_parser(infile)
+    sampled_reads = 0
+    o33 = 0
+    o64 = 0
+    for record in fastq:
+        while sampled_reads < 1000:
+            for c in record.qual:
+                oc = ord(c)
+                if oc < 74:
+                    o33 += 1
+                else:
+                    o64 += 1
+            sampled_reads += 1
+    if 3*o33 > o64:
+        quality_codes = dict([(chr(x),x-33) for x in range(33,33+94)])
+    else:
+        quality_codes = dict([(chr(x),x-64) for x in range(64-5,64+63)])
+    return quality_codes

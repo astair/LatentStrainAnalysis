@@ -2,6 +2,7 @@ import numpy as np
 import _pickle as cPickle
 from operator import itemgetter
 from LSA import LSA
+import Fastq as Fq
 
 class Hyper_Sequences(LSA):
 
@@ -9,32 +10,34 @@ class Hyper_Sequences(LSA):
 		super(Hyper_Sequences,self).__init__(inputpath,outputpath)
 
 	def generator_to_coords(self,sequence_generator):
-		for s in sequence_generator:
-			coords = self.letters_to_coords(s)
-			yield s['_id'],coords
+		for record in sequence_generator:
+			coords = self.letters_to_coords(record)
+			yield Fq.ComplexFastqRecord(record.name, coords)
 
 	def letters_to_coords(self,S):
 		# THIS EQUATES A/T AND C/G MISMATCHES WITH NEGATIVE MATCHES, AND ALL OTHERS AS NON-MATCHES
 		ltc_q = {'A': complex(-1,0),'T': complex(1,0),'C': complex(0,-1),'G': complex(0,1)}
-		p_correct = 1-1./2000
-		ltc_no_q = {'A': complex(-1,0)*p_correct,'T': complex(1,0)*p_correct,'C': complex(0,-1)*p_correct,'G': complex(0,1)*p_correct}
-		if 'q' in S:
-			return np.array([ltc_q.get(l,complex(0,0)) for l in S['s']])*self.quality_to_prob(S['q'])
-		else:
-			return [ltc_no_q.get(l,complex(0,0)) for l in S['s']]
+		# QUALITY LINE is necessary for valid FASTQ
+		# p_correct = 1-1./2000
+		# ltc_no_q = {'A': complex(-1,0)*p_correct,'T': complex(1,0)*p_correct,'C': complex(0,-1)*p_correct,'G': complex(0,1)*p_correct}
+		# if 'q' in S:
+		return np.array([ltc_q.get(l, complex(0,0)) for l in S.seq]) * self.quality_to_prob(S.qual)
+		# else:
+		# 	return [ltc_no_q.get(l,complex(0,0)) for l in S['s']]
 
 	def quality_to_prob(self,Q):
+		Q = [self.quality_codes[c] for c in Q]
 		return np.array([1-10**(-q/10.) for q in Q])
 
 	def set_wheels(self,wheels=200):
 		random_kmer_path = self.input_path + 'random_kmers.fastq'
+		self.quality_codes = Fq.set_quality_codes(random_kmer_path)
 		Wheels = []
 		for w in range(wheels):
-			Wheels += self.one_wheel(w,random_kmer_path)
+			Wheels += self.one_wheel(w, random_kmer_path)
 		Wheels.sort()
-		f = open(self.output_path+'Wheels.txt','wb')
-		cPickle.dump(Wheels,f)
-		f.close()
+		with open(self.output_path+'Wheels.txt','wb') as f:
+			cPickle.dump(Wheels,f)
 
 	def get_wheels(self,spoke_limit=999,wheel_limit=999999):
 		try:
@@ -77,22 +80,20 @@ class Hyper_Sequences(LSA):
 		else:
 			return None,None
 
-	def one_wheel(self,w,rp):
+	def one_wheel(self,w,reads_file):
 		S = []
-		f = open(rp)
 		for s in range(self.hash_size):
-			L = self.pick_leaf_noloc(self.kmer_size,f)
+			L = self.pick_leaf_noloc(self.kmer_size, reads_file)
 			P = self.affine_hull(L.values())
 			C = P.pop()
 			S.append((w,s,P,C))
-		f.close()
 		return S
 
 	def pick_leaf_noloc(self,nodes,f):
 		new_leaf = {}
-		nl = [_ for _ in self.generator_to_coords(self.read_generator(f,max_reads=nodes))]
-		for nlx in nl:
-			new_leaf[len(new_leaf)] = list(nlx[1])
+		complex_reads = [read for read in self.generator_to_coords(Fq.fastq_parser(f))]
+		for record in complex_reads:
+			new_leaf[len(new_leaf)] = list(record.coords)
 		return new_leaf
 
 	def affine_hull(self,linear_system):
@@ -100,7 +101,7 @@ class Hyper_Sequences(LSA):
 		linear_system = list(linear_system)
 		for row in linear_system:
 			row.append(-1)
-		linear_system.append([0]*len(linear_system[0]))
+		linear_system.append([0] * len(linear_system[0]))
 		linear_system = np.array(linear_system)
 		U,W,V = np.linalg.svd(linear_system)
 		return list(V[-1,:])
