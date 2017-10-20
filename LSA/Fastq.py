@@ -33,20 +33,12 @@ class FastqRecord(object):
         val_plus = self.name2 == '+'
         return val_id and val_len and val_qual and val_plus
 
-class ComplexFastqRecord(object):
-    """Fastq object with name and sequence
-    """
-
-    def __init__(self, name, coordinates):
-        self.name = name
-        self.coords = coordinates
-
 
 # FUNC
 def fastq_parser(infile):
-    """Takes a fastq file infile and returns a fastq object iterator
+    """Takes a FASTQ file infile and returns a FastqRecord object iterator
     """
-    
+
     with open_gz(infile) as f:
         while True:
             name = f.readline().strip()
@@ -58,8 +50,22 @@ def fastq_parser(infile):
             qual = f.readline().strip()
             yield FastqRecord(name, seq, name2, qual)
 
+def fastq_generator(f, max_reads=10**15):
+    """Reads max_reads from an open FASTQ file and returns a FastqRecord object iterator
+    """
+
+    for n in range(max_reads):
+        name = f.readline().strip()
+        if not name:
+            break
+
+        seq = f.readline().strip()
+        name2 = f.readline().strip()
+        qual = f.readline().strip()
+        yield FastqRecord(name, seq, name2, qual)
+
 def get_record(infile, position):
-    """Takes a fastq file_object and returns a fastq object iterator
+    """Takes a fastq file_object and returns a FastqRecord object
     """
 
     fastq = fastq_parser(infile)

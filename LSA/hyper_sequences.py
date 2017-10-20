@@ -1,8 +1,9 @@
 import numpy as np
-import _pickle as cPickle
+import pickle
 from operator import itemgetter
 from LSA import LSA
 import Fastq as Fq
+
 
 class Hyper_Sequences(LSA):
 
@@ -12,18 +13,15 @@ class Hyper_Sequences(LSA):
 	def generator_to_coords(self,sequence_generator):
 		for record in sequence_generator:
 			coords = self.letters_to_coords(record)
-			yield Fq.ComplexFastqRecord(record.name, coords)
+			yield record.name, coords
 
 	def letters_to_coords(self,S):
 		# THIS EQUATES A/T AND C/G MISMATCHES WITH NEGATIVE MATCHES, AND ALL OTHERS AS NON-MATCHES
-		ltc_q = {'A': complex(-1,0),'T': complex(1,0),'C': complex(0,-1),'G': complex(0,1)}
-		# QUALITY LINE is necessary for valid FASTQ
-		# p_correct = 1-1./2000
-		# ltc_no_q = {'A': complex(-1,0)*p_correct,'T': complex(1,0)*p_correct,'C': complex(0,-1)*p_correct,'G': complex(0,1)*p_correct}
-		# if 'q' in S:
-		return np.array([ltc_q.get(l, complex(0,0)) for l in S.seq]) * self.quality_to_prob(S.qual)
-		# else:
-		# 	return [ltc_no_q.get(l,complex(0,0)) for l in S['s']]
+		
+		# Valid FASTQ needs quality line!
+		ltc = {'A': complex(-1,0),'T': complex(1,0),'C': complex(0,-1),'G': complex(0,1)}
+		return np.array([ltc.get(l, complex(0,0)) for l in S.seq]) * self.quality_to_prob(S.qual)
+
 
 	def quality_to_prob(self,Q):
 		Q = [self.quality_codes[c] for c in Q]
@@ -36,29 +34,31 @@ class Hyper_Sequences(LSA):
 		for w in range(wheels):
 			Wheels += self.one_wheel(w, random_kmer_path)
 		Wheels.sort()
-		with open(self.output_path+'Wheels.txt','wb') as f:
-			cPickle.dump(Wheels,f)
+		with open(self.output_path + 'Wheels.txt','wb') as f:
+			pickle.dump(Wheels,f, protocol=1)
 
 	def get_wheels(self,spoke_limit=999,wheel_limit=999999):
 		try:
-			f = open(self.output_path+'Wheels.txt')
+			f = open(self.output_path + 'Wheels.txt', 'rb')
 		except:
-			f = open(self.input_path+'Wheels.txt')
-		Wheels = cPickle.load(f)
+			f = open(self.input_path + 'Wheels.txt', 'rb')
+		Wheels = pickle.load(f)
 		f.close()
+		# print(Wheels[0])
 		self.Wheels = [{'w': x[0],'s': x[1],'p': x[2],'c': x[3]} for x in Wheels if (x[0] < wheel_limit) and (x[1] < spoke_limit)]
 
 	def coords_to_bins(self,A,C,reverse_compliments=True):
+		self.get_wheels()
 		num_wheels = self.Wheels[-1]['w'] + 1
 		num_spokes = self.Wheels[-1]['s'] + 1
 		pow2 = np.array([2**j for j in range(num_spokes)])
 		Wc = np.array([w['c'] for w in self.Wheels])
 		C = np.array(C)
 		L = np.dot(C,np.transpose([w['p'] for w in self.Wheels]).conjugate())
-		B = [np.dot((L[:,ws:ws+num_spokes] > Wc[ws:ws+num_spokes]),pow2) for ws in range(0,num_wheels*num_spokes,num_spokes)]
+		B = [np.dot((L[:, ws:ws + num_spokes] > Wc[ws:ws + num_spokes]),pow2) for ws in range(0, num_wheels * num_spokes,num_spokes)]
 		if reverse_compliments:
-			L = np.dot(C[:,::-1]*-1,np.transpose([w['p'] for w in self.Wheels]).conjugate())
-			B2 = [np.dot((L[:,ws:ws+num_spokes] > Wc[ws:ws+num_spokes]),pow2) for ws in range(0,num_wheels*num_spokes,num_spokes)]
+			L = np.dot(C[:, ::-1] * -1, np.transpose([w['p'] for w in self.Wheels]).conjugate())
+			B2 = [np.dot((L[:, ws:ws + num_spokes] > Wc[ws:ws + num_spokes]),pow2) for ws in range(0, num_wheels * num_spokes,num_spokes)]
 			return A,self.pick_one_from_rc_pair(B,B2)
 		else:
 			return A,B
@@ -69,29 +69,31 @@ class Hyper_Sequences(LSA):
 		return [b[np.mod(b,mx).argmin(0),range(b.shape[1])] for b in B]
 
 	def generator_to_bins(self,sequence_generator,rc=True):
-		C = []
-		A = []
-		for a,c in self.generator_to_coords(sequence_generator):
-			for i in range(len(c)-self.kmer_size+1):
-				A.append(a)
-				C.append(c[i:i+self.kmer_size])
-		if len(A) > 0:
-			return self.coords_to_bins(A,C,reverse_compliments=rc)
+		IDs = []
+		hyper_kmers = []
+		test = 0
+		for ID, coords in self.generator_to_coords(sequence_generator):
+			for i in range(len(coords) - self.kmer_size + 1):
+				IDs.append(ID)
+				hyper_kmers.append(coords[i:i + self.kmer_size])
+		if len(IDs) > 0:
+			return self.coords_to_bins(IDs,hyper_kmers,reverse_compliments=rc)
 		else:
 			return None,None
 
 	def one_wheel(self,w,reads_file):
 		S = []
-		for s in range(self.hash_size):
-			L = self.pick_leaf_noloc(self.kmer_size, reads_file)
-			P = self.affine_hull(L.values())
-			C = P.pop()
-			S.append((w,s,P,C))
-		return S
+		with open(reads_file) as f:
+			for s in range(self.hash_size):
+				L = self.pick_leaf_noloc(self.kmer_size, f)
+				P = self.affine_hull(L.values())
+				C = P.pop()
+				S.append((w,s,P,C))
+			return S
 
 	def pick_leaf_noloc(self,nodes,f):
 		new_leaf = {}
-		complex_reads = [read for read in self.generator_to_coords(Fq.fastq_parser(f))]
+		complex_reads = [read for read in self.generator_to_coords(Fq.fastq_generator(f, max_reads=nodes))]
 		for record in complex_reads:
 			new_leaf[len(new_leaf)] = list(record.coords)
 		return new_leaf

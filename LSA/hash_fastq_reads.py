@@ -5,7 +5,9 @@ import os
 import sys 
 import argparse
 import gzip
+import io
 from fastq_reader import Fastq_Reader
+import Fastq as Fq
 
 # FUNC
 def interface():
@@ -44,37 +46,24 @@ def interface():
     return args
 
 # PAIRED READ FILES ARE ASSUMED TO BE SORTED
-def kmer_bins(b,A,pfx,outfile,type=2):
-    if type == 1:
-        # use this for readid 1, readid 2 pairs
-        def get_id(a):
-            return a[:a.index(' ')+2]
-    elif type == 2:
-        # use this for readid/1, readid/2 pairs
-        def get_id(a):
-            return a.split()[0]
-    else:
-        # no known read type treated as singleton
-        def get_id(a):
-            return a.split()[0]+'*'
-    current_id = None
+def kmer_bins(b,IDs,pfx,outfile):
+    current_id = ''
     pair = []
     bins = []
     reads_hashed = 0
-    for a in range(len(A)):
-        read_id = get_id(A[a])
-        print(read_id)
+    for n in range(len(IDs)):
+        read_id = IDs[n]
         if read_id != current_id:
             if (len(bins) > 0) and (read_id[:-1] != current_id[:-1]):
                 for rp in pair:
-                    outfile.write(rp)
-                    outfile.write(pfx+','.join([str(x) for x in bins]) + ']\n')
+                    outfile.write(rp + '\n')
+                    outfile.write(pfx + ','.join([str(x) for x in bins]) + ']\n')
                     reads_hashed += 1
                 pair = []
                 bins = []
             current_id = read_id
-            pair.append(A[a])
-        bins.append(b[a])
+            pair.append(IDs[n])
+        bins.append(b[n])
     return reads_hashed
 
 
@@ -103,18 +92,18 @@ if __name__ == "__main__":
     file_prefix = file_prefix[file_prefix.rfind('/') + 1:file_prefix.index('.fastq')]
 
     hashobject = Fastq_Reader(input_dir, output_dir)
-    with open(hashobject.input_path + file_prefix + '.fastq' + file_split,'r') as f:
-        read_type = 2
-        with gzip.open(hashobject.output_path + file_prefix + '.hashq' + file_split + '.gz', 'wb') as g:
-            hashobject.hpfx = hashobject.hpfx + str(hashobject.kmer_size)+','
-            A = []
-            reads_hashed = 0
-            while A != None:
-                try:
-                    A, B = hashobject.generator_to_bins(hashobject.read_generator(f, max_reads=25000, verbose_ids=True), rc=do_reverse_compliment)
-                    for b in range(len(B)):
-                        reads_hashed += kmer_bins(B[b], A, hashobject.hpfx, g, read_type)
-                except Exception as err:
-                    pass
-                    print(str(err))
-            print('total reads hashed:', reads_hashed)
+    reads_file_name = hashobject.input_path + file_prefix + '.fastq' + file_split
+
+    with open(reads_file_name, 'r') as f:
+        hashobject.quality_codes = Fq.set_quality_codes(reads_file_name)
+       
+        with gzip.open(hashobject.output_path + file_prefix + '.hashq' + file_split + '.gz', 'w') as out:
+            with io.TextIOWrapper(out, encoding='utf-8') as g:
+                hashobject.hpfx = hashobject.hpfx + str(hashobject.kmer_size) + ','
+                IDs = []
+                reads_hashed = 0
+                IDs, bins = hashobject.generator_to_bins(Fq.fastq_generator(f, max_reads=25000), rc=do_reverse_compliment)
+                for b in range(len(bins)):
+                    reads_hashed += kmer_bins(bins[b], IDs, hashobject.hpfx, g)
+
+                print('Total reads hashed:', reads_hashed)
