@@ -1,35 +1,58 @@
 #!/usr/bin/env python
 
-import sys, getopt
-import glob, os
+import sys
+import argparse
+import glob
+import os
 from fastq_reader import Fastq_Reader
 
-help_message = 'usage example: python merge_hashq_files.py -r 3 -i /project/home/hashed_reads/ -o /project/home/hashed_reads/'
+# FUNC
+def interface():
+    parser = argparse.ArgumentParser(description="Creates the hash function.")
+
+    parser.add_argument('-i',
+                        required=True,
+                        dest='IN',
+                        type=str,
+                        metavar='<input_dir>',
+                        help='The input directory.')
+
+    parser.add_argument('-o',
+                        required=True,
+                        dest='OUT',
+                        type=str,
+                        metavar='<output_dir>',
+                        help='The output directory.')
+
+    parser.add_argument('-r',
+                        required=True,
+                        dest='task_rank',
+                        type=int,
+                        help='Task rank of the current job.')
+
+    args = parser.parse_args()
+    return args
+
+# MAIN
 if __name__ == "__main__":
-	try:
-		opts, args = getopt.getopt(sys.argv[1:],'hr:i:o:',["filerank=","inputdir=","outputdir="])
-	except:
-		print help_message
-		sys.exit(2)
-	for opt, arg in opts:
-		if opt in ('-h','--help'):
-			print help_message
-			sys.exit()
-		elif opt in ('-r','--filerank'):
-			fr = int(arg) - 1
-		elif opt in ('-i','--inputdir'):
-			inputdir = arg
-			if inputdir[-1] != '/':
-				inputdir += '/'
-		elif opt in ('-o','--outputdir'):
-			outputdir = arg
-			if outputdir[-1] != '/':
-				outputdir += '/'
-	FP = glob.glob(os.path.join(inputdir,'*.hashq.*'))
-	FP = [fp[fp.rfind('/')+1:] for fp in FP]
-	FP = list(set([fp[:fp.index('.')] for fp in FP]))
-	file_prefix = FP[fr%len(FP)]
-	# SUPER DUMB to hardcode the fraction size
-	file_fraction = fr/len(FP)
-	hashobject = Fastq_Reader(inputdir,outputdir)
-	H = hashobject.hash_counts_from_hashq(file_prefix,multi_files_fraction=file_fraction)
+    args = interface()
+
+    input_dir = os.path.abspath(args.IN)
+    if not input_dir.endswith('/'):
+        input_dir += '/'
+
+    output_dir = os.path.abspath(args.OUT)
+    if not output_dir.endswith('/'):
+        output_dir += '/'
+
+    task_rank = args.task_rank - 1
+
+    FP = glob.glob(os.path.join(input_dir, '*.hashq.*'))
+    FP = [fp[fp.rfind('/') + 1:] for fp in FP]
+    FP = list(set([fp[:fp.index('.')] for fp in FP]))
+    file_prefix = FP[task_rank % len(FP)]
+
+    # SUPER DUMB to hardcode the fraction size
+    file_fraction = int(task_rank / len(FP))
+    hashobject = Fastq_Reader(input_dir, output_dir)
+    H = hashobject.hash_counts_from_hashq(file_prefix, multi_files_fraction=file_fraction)

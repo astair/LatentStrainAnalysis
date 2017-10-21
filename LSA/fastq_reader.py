@@ -38,9 +38,9 @@ class Fastq_Reader(Cluster_Analysis,Hash_Counting,Hyper_Sequences,LSA):
         lastlinechar = ''
         read_strings = []
         r = 0
-        while (line != '') and (r < max_reads):
+        while line and (r < max_reads):
             # read_id (always) and quality (sometimes) begin with '@', but quality preceded by '+' 
-            if (line[0] == '@') and (lastlinechar != '+'):
+            if line.startswith(b'@') and (lastlinechar != '+'):
                 if len(read_strings) == 5:
                     try:
                         I = newline.join(read_strings[:-1])

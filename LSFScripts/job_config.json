@@ -5,8 +5,8 @@
             "outfile": "CreateHash_Job.q",
             "header": [
                 "#SBATCH -J CreateHash",
-                "#SBATCH -o {0}Logs/CreateHash-Out.out",
-                "#SBATCH -e {0}Logs/CreateHash-Err.err"],
+                "#SBATCH -o {0}Logs/CreateHash-Out%I.out",
+                "#SBATCH -e {0}Logs/CreateHash-Err%I.err"],
             "body": [
                 "create_hash.py -i {0}original_reads/ -o {0}hashed_reads/ -k 33 -s 31"]},
 
@@ -16,8 +16,8 @@
             "header": [
                 "#SBATCH -J HashReads[1-{array_size}]",
                 "#SBATCH --array=1-{array_size}",
-                "#SBATCH -o {0}Logs/HashReads-Out.out",
-                "#SBATCH -e {0}Logs/HashReads-Err.err",
+                "#SBATCH -o {0}Logs/HashReads-Out%I.out",
+                "#SBATCH -e {0}Logs/HashReads-Err%I.err",
                 "#SBATCH -M 8"],
             "body": [
                 "sleep $(($SLURM_ARRAY_TASK_ID % 60))","hash_fastq_reads.py -r ${{SLURM_ARRAY_TASK_ID}} -i {0}original_reads/ -o {0}hashed_reads/"]},
@@ -26,7 +26,8 @@
             "outfile": "MergeHash_ArrayJob.q",
             "array": ["original_reads/","*.fastq",5],
             "header": [
-                "#SBATCH -J MergeHash[1-",
+                "#SBATCH -J MergeHash[1-{array_size}]",
+                "#SBATCH --array=1-{array_size}",
                 "#SBATCH -o {0}Logs/MergeHash-Out-%I.out",
                 "#SBATCH -e {0}Logs/MergeHash-Err-%I.err",
                 "#SBATCH -t 53:58",
@@ -34,13 +35,14 @@
                 "#SBATCH -M 8"],
             "body": [
                 "sleep $(($SLURM_ARRAY_TASK_ID % 60))",
-                "python LSA/merge_hashq_files.py -r ${LSB_JOBINDEX} -i {0}hashed_reads/ -o {0}hashed_reads/"]},
+                "merge_hashq_files.py -r ${{SLURM_ARRAY_TASK_ID}} -i {0}hashed_reads/ -o {0}hashed_reads/"]},
 
         "CombineFractions": {
             "outfile": "CombineFractions_ArrayJob.q",
             "array": ["original_reads/","*.fastq",1],
             "header": [
-                "#SBATCH -J CombineFractions[1-",
+                "#SBATCH -J CombineFractions[1-{array_size}]",
+                "#SBATCH --array=1-{array_size}",
                 "#SBATCH -o {0}Logs/CombineFractions-Out-%I.out",
                 "#SBATCH -e {0}Logs/CombineFractions-Err-%I.err",
                 "#SBATCH -q week",
@@ -49,7 +51,7 @@
                 "#SBATCH -M 20"],
             "body": [
                 "sleep $(($SLURM_ARRAY_TASK_ID % 60))",
-                "python LSA/merge_hashq_fractions.py -r ${LSB_JOBINDEX} -i {0}hashed_reads/ -o {0}hashed_reads/"]},
+                "merge_hashq_fractions.py -r ${{SLURM_ARRAY_TASK_ID}} -i {0}hashed_reads/ -o {0}hashed_reads/"]},
 
         "GlobalWeights": {
             "outfile": "GlobalWeights_Job.q",
@@ -62,13 +64,14 @@
                 "#SBATCH -R 'rusage[mem=25]'",
                 "#SBATCH -M 75"],
             "body": [
-                "python LSA/tfidf_corpus.py -i {0}hashed_reads/ -o {0}cluster_vectors/"]},
+                "tfidf_corpus.py -i {0}hashed_reads/ -o {0}cluster_vectors/"]},
 
         "KmerCorpus": {
             "outfile": "KmerCorpus_ArrayJob.q",
             "array": ["hashed_reads/","*.count.hash"],
             "header": [
-                "#SBATCH -J KmerCorpus[1-",
+                "#SBATCH -J KmerCorpus[1-{array_size}]",
+                "#SBATCH --array=1-{array_size}",
                 "#SBATCH -o {0}Logs/KmerCorpus-Out-%I.out",
                 "#SBATCH -e {0}Logs/KmerCorpus-Err-%I.err",
                 "#SBATCH -q hour",
@@ -77,7 +80,7 @@
                 "#SBATCH -M 45"],
             "body": [
                 "sleep $(($SLURM_ARRAY_TASK_ID % 60))",
-                "python LSA/kmer_corpus.py -r ${LSB_JOBINDEX} -i {0}hashed_reads/ -o {0}cluster_vectors/"]},
+                "kmer_corpus.py -r ${{SLURM_ARRAY_TASK_ID}} -i {0}hashed_reads/ -o {0}cluster_vectors/"]},
 
         "KmerLSI": {
             "outfile": "KmerLSI_Job.q",
@@ -96,7 +99,7 @@
                 "python -m gensim.models.lsi_worker > {0}Logs/worker5.log 2>&1 &","P6=$!",
                 "python -m gensim.models.lsi_dispatcher > {0}Logs/dispatcher.log 2>&1 &","P7=$!"],
             "body": [
-                "python LSA/kmer_lsi.py -i {0}hashed_reads/ -o {0}cluster_vectors/","kill $P1 $P2 $P3 $P4 $P5 $P6 $P7"]},
+                "kmer_lsi.py -i {0}hashed_reads/ -o {0}cluster_vectors/","kill $P1 $P2 $P3 $P4 $P5 $P6 $P7"]},
 
         "KmerClusterIndex": {
             "outfile": "KmerClusterIndex_Job.q",
@@ -108,9 +111,9 @@
                 "#SBATCH -R 'rusage[mem=1]'",
                 "#SBATCH -M 35"],
             "body": [
-                "python LSA/kmer_cluster_index.py -i {0}hashed_reads/ -o {0}cluster_vectors/ -t 0.7",
-                "python LSFScripts/create_jobs.py -j KmerClusterParts -i ./","X=`sed -n 1p hashed_reads/hashParts.txt`",
-                "sed -i 's/%parts%/$X/g' LSFScripts/KmerClusterParts_ArrayJob.q","python LSFScripts/create_jobs.py -j LSFScripts/KmerClusterMerge -i ./","X=`sed -n 1p cluster_vectors/numClusters.txt`",
+                "kmer_cluster_index.py -i {0}hashed_reads/ -o {0}cluster_vectors/ -t 0.7",
+                "create_jobs.py -j KmerClusterParts -i ./","X=`sed -n 1p hashed_reads/hashParts.txt`",
+                "sed -i 's/%parts%/$X/g' LSFScripts/KmerClusterParts_ArrayJob.q","create_jobs.py -j LSFScripts/KmerClusterMerge -i ./","X=`sed -n 1p cluster_vectors/numClusters.txt`",
                 "sed -i 's/%clusters%/$X/g' LSFScripts/KmerClusterMerge_ArrayJob.q"]},
 
         "KmerClusterParts": {
@@ -126,7 +129,7 @@
                 "#SBATCH -M 4"],
             "body": [
                 "sleep $(($SLURM_ARRAY_TASK_ID % 60))",
-                "python LSA/kmer_cluster_part.py -r ${LSB_JOBINDEX} -i {0}hashed_reads/ -o {0}cluster_vectors/ -t 0.7"]},
+                "kmer_cluster_part.py -r ${{SLURM_ARRAY_TASK_ID}} -i {0}hashed_reads/ -o {0}cluster_vectors/ -t 0.7"]},
 
         "KmerClusterMerge": {
             "outfile": "KmerClusterMerge_ArrayJob.q",
@@ -141,7 +144,7 @@
                 "#SBATCH -M 8"],
             "body": [
                 "sleep $(($SLURM_ARRAY_TASK_ID % 60))",
-                "python LSA/kmer_cluster_merge.py -r ${LSB_JOBINDEX} -i {0}cluster_vectors/ -o {0}cluster_vectors/"]},
+                "kmer_cluster_merge.py -r ${{SLURM_ARRAY_TASK_ID}} -i {0}cluster_vectors/ -o {0}cluster_vectors/"]},
 
         "KmerClusterCols": {
             "outfile": "KmerClusterCols_Job.q",
@@ -154,7 +157,7 @@
                 "#SBATCH -R 'rusage[mem=40]'",
                 "#SBATCH -M 70"],
             "body": [
-                "python LSA/kmer_cluster_cols.py -i {0}hashed_reads/ -o {0}cluster_vectors/"]},
+                "kmer_cluster_cols.py -i {0}hashed_reads/ -o {0}cluster_vectors/"]},
 
         "ReadPartitions": {
             "outfile": "ReadPartitions_ArrayJob.q",
@@ -169,7 +172,7 @@
                 "#SBATCH -M 20"],
             "body": [
                 "sleep $(($SLURM_ARRAY_TASK_ID % 60))",
-                "python LSA/write_partition_parts.py -r ${LSB_JOBINDEX} -i {0}hashed_reads/ -o {0}cluster_vectors/ -t TMPDIR"]},
+                "write_partition_parts.py -r ${{SLURM_ARRAY_TASK_ID}} -i {0}hashed_reads/ -o {0}cluster_vectors/ -t TMPDIR"]},
 
         "MergeIntermediatePartitions": {
             "outfile": "MergeIntermediatePartitions_ArrayJob.q",
@@ -184,7 +187,7 @@
                 "#SBATCH -R 'rusage[argon_io=3]'"],
             "body": [
                 "sleep $(($SLURM_ARRAY_TASK_ID % 60))",
-                "python LSA/merge_partition_parts.py -r ${LSB_JOBINDEX} -i {0}cluster_vectors/ -o {0}read_partitions/"]},
+                "merge_partition_parts.py -r ${{SLURM_ARRAY_TASK_ID}} -i {0}cluster_vectors/ -o {0}read_partitions/"]},
 
         "SplitPairs": {
             "outfile": "SplitPairs_ArrayJob.q",
@@ -199,7 +202,7 @@
                 "#SBATCH -M 8"],
             "body": [
                 "sleep $(($SLURM_ARRAY_TASK_ID % 60))",
-                "python LSA/split_read_pairs.py -r ${LSB_JOBINDEX} -i {0}read_partitions/ -o {0}read_partitions/"]},
+                "split_read_pairs.py -r ${{SLURM_ARRAY_TASK_ID}} -i {0}read_partitions/ -o {0}read_partitions/"]},
 
         "PhylerClassify": {
             "outfile": "PhylerClassify_ArrayJob.q",
@@ -214,7 +217,7 @@
                 "reuse BLAST"],
             "body": [
                 "sleep $(($SLURM_ARRAY_TASK_ID % 60))",
-                "python misc/phyler_classify.py -r ${LSB_JOBINDEX} -i {0}read_partitions/ -o {0}phyler/"]},
+                "phyler_classify.py -r ${{SLURM_ARRAY_TASK_ID}} -i {0}read_partitions/ -o {0}phyler/"]},
 
         "PhylerIdentify": {
             "outfile": "PhylerIdentify_ArrayJob.q",
@@ -228,7 +231,7 @@
                 "#SBATCH -M 2"],
             "body": [
                 "sleep $(($SLURM_ARRAY_TASK_ID % 60))",
-                "python misc/phyler_identify.py -r ${LSB_JOBINDEX} -i {0}read_partitions/ -o {0}phyler/"]},
+                "phyler_identify.py -r ${{SLURM_ARRAY_TASK_ID}} -i {0}read_partitions/ -o {0}phyler/"]},
 
         "PhylerSummary": {
             "outfile": "PhylerSummary_Job.q",
@@ -240,7 +243,7 @@
                 "#SBATCH -t 1:55",
                 "#SBATCH -M 2"],
             "body": [
-                "python misc/phyler_summary.py -i {0}phyler/"]}
+                "phyler_summary.py -i {0}phyler/"]}
     },
 
     "CommonElements": {

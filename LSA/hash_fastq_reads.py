@@ -14,6 +14,7 @@ def interface():
     parser = argparse.ArgumentParser(description="Creates jobs.")
 
     parser.add_argument('-r',
+                        required=True,
                         dest='task_rank',
                         type=int,
                         help='Task rank of the current job.')

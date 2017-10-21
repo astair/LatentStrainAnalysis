@@ -6,6 +6,7 @@ import numpy as np
 import scipy.stats as stats
 import gzip
 from LSA import LSA
+import HashedReads as Hq
 
 class Hash_Counting(LSA):
 
@@ -13,35 +14,38 @@ class Hash_Counting(LSA):
 		super(Hash_Counting,self).__init__(inputpath,outputpath)
 
 	def hash_counts_from_hashq(self,fileprefix,multi_files_fraction=None):
-		H = (c_uint16*2**self.hash_size)()
+		H = (c_uint16 * 2**self.hash_size)()
 		if multi_files_fraction != None:
-			FP = glob.glob(os.path.join(self.output_path,fileprefix+'.*.hashq.*'))
+			FP = glob.glob(os.path.join(self.output_path, fileprefix + '.*.hashq.*'))
 			if len(FP) == 0:
 				print('WARNING: no files like %s.*.hashq.* found' % fileprefix)
 			# SUPER DUMB to hardcode the number of fractions (5)
 			FPsplits = [FP[i::5] for i in range(5)]
 			FP = FPsplits[multi_files_fraction]
-			outfile = self.output_path+fileprefix+'.count.hash.'+str(multi_files_fraction)
+			outfile = self.output_path + fileprefix + '.count.hash.' + str(multi_files_fraction)
 		else:
-			FP = [self.output_path+fileprefix]
-			outfile = self.output_path+fileprefix+'.count.hash'
+			FP = [self.output_path + fileprefix]
+			outfile = self.output_path + fileprefix + '.count.hash'
 		for filename in FP:
-			try:
-				f = gzip.open(filename)
-				for a in self.hash_read_generator(f):
-					try:
-						for b in a[2]:
-							H[b] = min(65535,H[b]+1)
-					except Exception as err:
-						print(Exception,str(err))
-				f.close()
-			except Exception as err:
-				print('ERROR processing '+filename,Exception,str(err))
-		if len(FP) > 0:
-			f0 = open(outfile,'wb')
-			f0.write(H)
-			f0.close()
-		return H
+			with gzip.open(filename, 'r') as f:
+				for record in Hq.hash_read_generator(f):
+					print(record.name)
+					print(record.k)
+					print(record.bins)
+
+		# 		for a in self.hash_read_generator(f):
+		# 			try:
+		# 				for b in a[2]:
+		# 					H[b] = min(65535, H[b] + 1)
+		# 			except Exception as err:
+		# 				print(Exception, str(err))
+		# 	# except Exception as err:
+		# 	# 	print('ERROR processing ' + filename,Exception,str(err))
+		# if len(FP) > 0:
+		# 	f0 = open(outfile,'wb')
+		# 	f0.write(H)
+		# 	f0.close()
+		# return H
 
 	def merge_count_fractions(self,fileprefix):
 		H = (c_uint16*2**self.hash_size)()

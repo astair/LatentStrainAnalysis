@@ -37,8 +37,6 @@ def interface():
                         metavar='<hashsize>',
                         help='Hash size.')
 
-    
-
     args = parser.parse_args()
     return args
 

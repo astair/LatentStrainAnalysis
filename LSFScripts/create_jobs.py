@@ -49,7 +49,6 @@ if __name__ == "__main__":
         input_dir += '/'
 
     script_dir = os.path.dirname(os.path.realpath(__file__))
-    print(script_dir)
     with open(script_dir + '/job_config.json', 'r') as f:
         config = json.load(f)
         JobParams = config['JobParams']
@@ -67,6 +66,7 @@ if __name__ == "__main__":
     if params.get('array', None) is not None:
         FP = glob.glob(os.path.join(input_dir + params['array'][0],params['array'][1]))
 
+        array_size = len(FP)
         if len(params['array']) == 3:
             FP = [fp[fp.rfind('/') + 1:] for fp in FP]
             if params['array'][2] == -1:
@@ -74,10 +74,10 @@ if __name__ == "__main__":
                 FP = set([fp[:fp.index(suffix)] for fp in FP])
             else:
                 FP = set([fp[:fp.index('.')] for fp in FP])
-            FP = [None] * len(FP) * abs(params['array'][2])
-        array_size = str(len(FP))
+            array_size = len(FP) * abs(params['array'][2])
+
         params['header'][0:2] = [line.format(array_size=array_size) for line in params['header'][0:2]]
-        print(job + ' array size will be ' + array_size)
+        print(job + ' array size will be ' + str(array_size))
 
     with open(input_dir + 'jobs/' + params['outfile'], 'w') as f:
         f.write('\n'.join(CommonElements['header']) + '\n')
