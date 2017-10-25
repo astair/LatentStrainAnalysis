@@ -41,7 +41,7 @@ if __name__ == "__main__":
         output_dir += '/'
 
     hashobject = StreamingEigenhashes(input_dir,output_dir,get_pool=False)
-    Kmer_Hash_Count_Files = glob.glob(os.path.join(hashobject.input_path,'*.nonzero.npy'))
+    Kmer_Hash_Count_Files = glob.glob(os.path.join(hashobject.input_path, '*.nonzero.npy'))
     corpus_generator = hashobject.corpus_idf_from_hash_paths(Kmer_Hash_Count_Files)
     hashobject.train_tfidf(corpus_generator)
-    np.save(hashobject.output_path+'global_weights.npy',hashobject.global_weights)
+    np.save(hashobject.output_path + 'global_weights.npy',hashobject.global_weights)
