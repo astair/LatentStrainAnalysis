@@ -34,6 +34,11 @@ def interface():
     args = parser.parse_args()
     return args
 
+def unique(array):
+    seen = set()
+    seen_add = seen.add
+    return [x for x in array if not (x in seen or seen_add(x))]
+
 # MAIN
 if __name__ == "__main__":
     args = interface()
@@ -50,7 +55,7 @@ if __name__ == "__main__":
 
     FP = glob.glob(os.path.join(input_dir,'*.hashq.*'))
     FP = [fp[fp.rfind('/')+1:] for fp in FP]
-    FP = list(set([fp[:fp.index('.')] for fp in FP]))
+    FP = list(unique([fp[:fp.index('.')] for fp in FP]))
     file_prefix = FP[task_rank]
     hashobject = Fastq_Reader(input_dir, output_dir)
     H = hashobject.merge_count_fractions(file_prefix)

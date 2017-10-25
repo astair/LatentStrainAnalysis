@@ -41,8 +41,8 @@ class StreamingEigenhashes(Hash_Counting,Hyper_Sequences,LSA):
 		del mask
 		norm = np.linalg.norm(H)/len(H)**.5
 		X = np.memmap(fp+'.conditioned',dtype=np.float32,mode='w+',shape=(len(H),))
-		self.global_weights = np.load(self.output_path+'global_weights.npy')
-		X[:] = H*self.global_weights/norm
+		self.global_weights = np.load(self.output_path + 'global_weights.npy')
+		X[:] = H * self.global_weights/norm
 		del X
 
 	def kmer_corpus_from_disk(self,o=None):
@@ -89,7 +89,7 @@ class StreamingEigenhashes(Hash_Counting,Hyper_Sequences,LSA):
 			seed_vectors = lsi[self.kmer_corpus_from_disk(o=(np.random.randint(0,2**self.hash_size-chunk_size),chunk_size))]
 			Clusters,Index = self.merge_index(seed_vectors,Index,Clusters)
 			Clusters,Index = self.collapse_index(Index,Clusters)
-			print ci,len(Clusters)
+			print(ci,len(Clusters))
 		return Index
 
 	def lsi_cluster_part(self,offsets,lsi,Index):

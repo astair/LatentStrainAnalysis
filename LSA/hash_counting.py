@@ -18,7 +18,7 @@ class Hash_Counting(LSA):
 		if multi_files_fraction != None:
 			FP = glob.glob(os.path.join(self.output_path, fileprefix + '.*.hashq.*'))
 			if len(FP) == 0:
-				print('WARNING: no files like %s.*.hashq.* found' % fileprefix)
+				print('WARNING: no files like {0}.*.hashq.* found'.format(fileprefix))
 			# SUPER DUMB to hardcode the number of fractions (5)
 			FPsplits = [FP[i::5] for i in range(5)]
 			FP = FPsplits[multi_files_fraction]
@@ -29,49 +29,37 @@ class Hash_Counting(LSA):
 		for filename in FP:
 			with gzip.open(filename, 'r') as f:
 				for record in Hq.hash_read_generator(f):
-					print(record.name)
-					print(record.k)
-					print(record.bins)
-
-		# 		for a in self.hash_read_generator(f):
-		# 			try:
-		# 				for b in a[2]:
-		# 					H[b] = min(65535, H[b] + 1)
-		# 			except Exception as err:
-		# 				print(Exception, str(err))
-		# 	# except Exception as err:
-		# 	# 	print('ERROR processing ' + filename,Exception,str(err))
-		# if len(FP) > 0:
-		# 	f0 = open(outfile,'wb')
-		# 	f0.write(H)
-		# 	f0.close()
-		# return H
+					for b in record.bins:
+						H[b] = min(65535, H[b] + 1)
+		if len(FP) > 0:
+			with gzip.open(outfile, 'wb') as f0:
+				f0.write(H)
+		return H
 
 	def merge_count_fractions(self,fileprefix):
-		H = (c_uint16*2**self.hash_size)()
-		FP = glob.glob(os.path.join(self.output_path,fileprefix+'.count.hash.*'))
+		H = (c_uint16 * 2**self.hash_size)()
+		FP = glob.glob(os.path.join(self.output_path, fileprefix + '.count.hash.*'))
+		print(FP)
 		if len(FP) == 0:
-			print('WARNING: no files like %s.count.hash.* found' % fileprefix)
+			print('WARNING: no files like {0}.count.hash.* found'.format(fileprefix))
 		for fp in FP:
 			H1 = self.open_count_hash(fp)
 			# unfortunately we can't just add, due to overflow
-			for i,x in enumerate(H1):
+			for i, x in enumerate(H1):
 				if x > 0:
-					H[i] = min(65535,H[i]+x)
+					H[i] = min(65535, H[i] + x)
 			del H1
 		if len(FP) > 0:
-			f = open(self.output_path+fileprefix+'.count.hash','wb')
-			f.write(H)
-			f.close()
+			with gzip.open(self.output_path + fileprefix + '.count.hash.combined', 'wb') as f:
+				f.write(H)
 		for fp in FP:
-			os.system('rm '+fp)
+			os.system('rm ' + fp)
 		return H
 
 	def open_count_hash(self,file_path):
-		f = open(file_path,'rb')
-		H = (c_uint16*2**self.hash_size)()
-		f.readinto(H)
-		f.close()
+		with gzip.open(file_path, 'rb') as f:
+			H = (c_uint16 * 2**self.hash_size)()
+			f.readinto(H)
 		return H
 
 	def bitarray_from_array(self,A):
