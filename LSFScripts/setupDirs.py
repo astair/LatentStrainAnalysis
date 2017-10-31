@@ -40,7 +40,7 @@ def interface():
 
     parser.add_argument('-o', '--output-dir',
                         required=True,
-                        dest='out',
+                        dest='OUT',
                         type=str,
                         metavar='<output-directory>',
                         help='Output directory for the pipeline.')
@@ -52,17 +52,18 @@ def interface():
 SplitInput_string = """#!/bin/bash
 #SBATCH -J SplitInput[1-{0}]
 #SBATCH --array=1-{0}
-#SBATCH -o {1}Logs/SplitInput-Out.out
-#SBATCH -e {1}Logs/SplitInput-Err.err
+#SBATCH -p 1week
+#SBATCH -o {1}Logs/SplitInput-Out%I.out
+#SBATCH -e {1}Logs/SplitInput-Err%I.err
 
 echo Date: `date`
 t1=`date +%s`
 
 ### REMOVE LATER:
-source "/Users/Jonas/Documents/Msc-Biotechnologie/masterarbeit-zeller/nile/scripts/local_config.txt"
-PATH=$PATH:${{HOME}}/apps/LatentStrainAnalysis:${{HOME}}/apps/LatentStrainAnalysis/LSFScripts
+source "/home/fleck/scripts/cluster_config.txt"
+PATH=$PATH:${{HOME}}/apps/LatentStrainAnalysis:${{HOME}}/apps/LatentStrainAnalysis/LSFScripts:${{HOME}}/apps/LatentStrainAnalysis/LSA
 
-array_merge.py -r ${{SLURM_ARRAY_TASK_ID}} -1 {2} -2 {3} -s {4} -o original_reads/
+${{LSF_SCRIPTS}}/array_merge.py -r ${{SLURM_ARRAY_TASK_ID}} -1 {2} -2 {3} -s {4} -o {1}original_reads/
 
 echo Date: `date`
 t2=`date +%s`
@@ -70,9 +71,6 @@ tdiff=`echo 'scale=3;('$t2'-'$t1')/3600' | bc`
 echo 'Total time:  '$tdiff' hours'
 """
 
-# The Line:
-# PATH=$PATH:${HOME}/apps/LatentStrainAnalysis:${HOME}/apps/LatentStrainAnalysis/LSFScripts
-# is a temporary addition to mimic module load behavior.
 
 # MAIN
 if __name__ == "__main__":
@@ -82,7 +80,7 @@ if __name__ == "__main__":
     reads_2 = " ".join(args.READS_2)
     reads_single = args.SINGLETS
 
-    output_dir = args.out
+    output_dir = os.path.abspath(args.OUT)
     if not output_dir.endswith('/'):
         output_dir += '/'
 

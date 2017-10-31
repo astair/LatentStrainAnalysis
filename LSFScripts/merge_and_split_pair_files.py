@@ -3,6 +3,7 @@
 import sys
 import os
 import argparse
+import gzip
 
 
 # FUNC
@@ -39,6 +40,14 @@ def interface():
     args = parser.parse_args()
     return args
 
+def open_gz(infile, mode="r"):
+    """Takes input and uncompresses gzip if needed
+    """
+
+    if infile.endswith(".gz"):
+        return gzip.open(infile, mode=mode)
+    else:
+        return open(infile, mode=mode)
 
 def merge_pairs(f1, f2, f0):
     reads_written = 0
@@ -59,16 +68,15 @@ def merge_pairs(f1, f2, f0):
             reads_written += 2
     return len(r1[0]), reads_written
 
-
 def split_singletons(sing_path, out_prefix):
     ss = 0
     i = 0
     reads_written = 0
-    f1 = open(sing_path)
+    f1 = open_gz(sing_path)
 
     for line in f1:
         if i % 4000000 == 0:
-            f0 = open(out_prefix + '.singleton.fastq' + split_suffix[ss], 'w')
+            f0 = gzip.open(out_prefix + '.singleton.fastq' + split_suffix[ss], 'w')
             ss += 1
         f0.write(line)
         reads_written += .25
@@ -85,6 +93,11 @@ if __name__ == "__main__":
     reads_single = args.SINGLETS
     out = args.out
 
+    if reads_1.endswith('.gz'): 
+        out_suffix='.fq.gz'
+    else:
+        out_suffix='.fq'
+
     split_suffix = ['.00' + str(_) for _ in range(10)]
     split_suffix += ['.0' + str(_) for _ in range(10,99)]
     split_suffix += ['.' + str(_) for _ in range(100,999)]
@@ -93,16 +106,15 @@ if __name__ == "__main__":
     singletons_written = 0
 
     if reads_1 != 'None' and reads_2 != 'None':
-        f1 = open(reads_1)
-        f2 = open(reads_2)
+        f1 = open_gz(reads_1)
+        f2 = open_gz(reads_2)
         r1len = 1
         ss = 0
         while r1len > 0:
-            f0 = open(out + '.interleaved.fastq' + split_suffix[ss],'w')
-            r1len, rw = merge_pairs(f1, f2, f0)
-            ss += 1
-            mates_written += rw
-            f0.close()
+            with gzip.open(out + '.interleaved.fastq' + split_suffix[ss],'w') as f0:
+                r1len, rw = merge_pairs(f1, f2, f0)
+                ss += 1
+                mates_written += rw
 
     if reads_single != 'None':
         rw = split_singletons(reads_single, out)

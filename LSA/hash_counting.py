@@ -50,7 +50,7 @@ class Hash_Counting(LSA):
 					H[i] = min(65535, H[i] + x)
 			del H1
 		if len(FP) > 0:
-			with gzip.open(self.output_path + fileprefix + '.count.hash.combined', 'wb') as f:
+			with gzip.open(self.output_path + fileprefix + '.count.hash', 'wb') as f:
 				f.write(H)
 		for fp in FP:
 			os.system('rm ' + fp)

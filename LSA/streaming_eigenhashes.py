@@ -50,13 +50,14 @@ class StreamingEigenhashes(Hash_Counting,Hyper_Sequences,LSA):
 			o = (0,2**self.hash_size)
 		o = (o[0],min(o[1],2**self.hash_size - o[0]))
 		F = [open(self.path_dict[i],'rb') for i in range(len(self.path_dict))]
+		print(F)
 		for f in F:
-			f.seek(o[0]*4)
+			f.seek(o[0] * 4)
 		class NewCorpus(object):
 			def __iter__(newself):
 				rows_processed = 0
 				while True:
-					H = self.new_chunk(F,n=min(10000,o[1]-rows_processed))
+					H = self.new_chunk(F,n=min(10000,o[1] - rows_processed))
 					for h in H:
 						nz = np.nonzero(h)[0]
 						yield [(x,h[x]) for x in nz]
