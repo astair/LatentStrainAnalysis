@@ -3,11 +3,46 @@
 ### THIS MAY OCCUPY ~10-50GB OF /tmp SPACE PER JOB
 
 import glob,os
-import sys,getopt
+import sys
+import argparse
 import gzip
 import numpy as np
 from collections import defaultdict
 from fastq_reader import Fastq_Reader
+
+# FUNC
+def interface():
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument('-i',
+                        required=True,
+                        dest='IN',
+                        type=str,
+                        metavar='<input_dir>',
+                        help='The directory containing the original reads.')
+
+    parser.add_argument('-o',
+                        required=True,
+                        dest='OUT',
+                        type=str,
+                        metavar='<output_dir>',
+                        help='The output directory for the hashed reads.')
+
+    parser.add_argument('-t',
+                        required=True,
+                        dest='TMP',
+                        type=str,
+                        metavar='<tmp_dir>',
+                        help='Directory for temporary files.')
+
+    parser.add_argument('-r',
+                        required=True,
+                        dest='task_rank',
+                        type=int,
+                        help='Task rank of the current job.')    
+
+    args = parser.parse_args()
+    return args
 
 def max_log_lik_ratio(s,bkg,h1_prob=0.8,thresh1=3.84,thresh2=np.inf):
 	LLR = [(None,None)]
@@ -32,43 +67,37 @@ def max_log_lik_ratio(s,bkg,h1_prob=0.8,thresh1=3.84,thresh2=np.inf):
 			break
 	return K
 
-help_message = 'usage example: python write_partition_parts.py -r 1 -i /project/home/hashed_reads/ -o /project/home/cluster_vectors/ -t /tmp/dir/'
+# MAIN
 if __name__ == "__main__":
-	try:
-		opts, args = getopt.getopt(sys.argv[1:],'hr:i:o:t:',["--filerank=","inputdir=","outputdir=","tmpdir="])
-	except:
-		print help_message
-		sys.exit(2)
-	for opt, arg in opts:
-		if opt in ('-h','--help'):
-			print help_message
-			sys.exit()
-		elif opt in ('-r',"--filerank"):
-			fr = int(arg)-1
-		elif opt in ('-i','--inputdir'):
-			inputdir = arg
-			if inputdir[-1] != '/':
-				inputdir += '/'
-		elif opt in ('-o','--outputdir'):
-			outputdir = arg
-			if outputdir[-1] != '/':
-				outputdir += '/'
-		elif opt in ('-t','--tmpdir'):
-			tmpdir = arg
-			if tmpdir[-1] != '/':
-				tmpdir += '/'
-	hashobject = Fastq_Reader(inputdir,outputdir)
+    args = interface()
+
+    input_dir = os.path.abspath(args.IN)
+    if not input_dir.endswith('/'):
+        input_dir += '/'
+
+    output_dir = os.path.abspath(args.OUT)
+    if not output_dir.endswith('/'):
+        output_dir += '/'
+
+    tmp_dir = os.path.abspath(args.TMP)
+    if not output_dir.endswith('/'):
+        output_dir += '/'
+
+    task_rank = args.task_rank - 1
+
+
+	hashobject = Fastq_Reader(input_dir,output_dir)
 	cp = np.load(hashobject.output_path+'cluster_probs.npy')
 	cluster_probs = dict(enumerate(cp))
 	Hashq_Files = glob.glob(os.path.join(hashobject.input_path,'*.hashq.*'))
 	Hashq_Files = [fp for fp in Hashq_Files if '.tmp' not in fp]
 	Hashq_Files.sort()
-	infile = Hashq_Files[fr]
+	infile = Hashq_Files[task_rank]
 	outpart = infile[-6:-3]
 	sample_id = infile[infile.rfind('/')+1:infile.index('.hashq')]
-	tmpdir += str(fr) + '/'
-	os.system('mkdir '+tmpdir)
-	G = [open('%s%s.%s.cols.%d' % (tmpdir,sample_id,outpart,i),'w') for i in range(0,2**hashobject.hash_size,2**hashobject.hash_size/50)]
+	tmp_dir += str(task_rank) + '/'
+	os.system('mkdir '+tmp_dir)
+	G = [open('%s%s.%s.cols.%d' % (tmp_dir,sample_id,outpart,i),'w') for i in range(0,2**hashobject.hash_size,2**hashobject.hash_size/50)]
 	f = gzip.open(infile)
 	r_id = 0
 	for a in hashobject.hash_read_generator(f):
@@ -84,14 +113,14 @@ if __name__ == "__main__":
 	else:
 		ClusterFile = open(hashobject.output_path+'cluster_cols.npy')
 		ValueFile = open(hashobject.output_path+'cluster_vals.npy')
-		G = [open('%s%s.%s.ids.%d' % (tmpdir,sample_id,outpart,i),'w') for i in range(0,R,R/50)]
+		G = [open('%s%s.%s.ids.%d' % (tmp_dir,sample_id,outpart,i),'w') for i in range(0,R,R/50)]
 		# If sharing ClusterFile among many jobs is not practical, we may aggregate jobs below by 1/50 ClusterFile fractions across samples (so each job reads 1 fraction)
 		for i in range(0,2**hashobject.hash_size,2**hashobject.hash_size/50):
-			os.system('sort -nk 1 %s%s.%s.cols.%d -o %s%s.%s.cols.%d' % (tmpdir,sample_id,outpart,i,tmpdir,sample_id,outpart,i))
-			f = open('%s%s.%s.cols.%d' % (tmpdir,sample_id,outpart,i))
+			os.system('sort -nk 1 %s%s.%s.cols.%d -o %s%s.%s.cols.%d' % (tmp_dir,sample_id,outpart,i,tmp_dir,sample_id,outpart,i))
+			f = open('%s%s.%s.cols.%d' % (tmp_dir,sample_id,outpart,i))
 			ColId = np.fromfile(f,dtype=np.int64,sep='\t')
 			f.close()
-			os.system('rm %s%s.%s.cols.%d' % (tmpdir,sample_id,outpart,i))
+			os.system('rm %s%s.%s.cols.%d' % (tmp_dir,sample_id,outpart,i))
 			C = np.fromfile(ClusterFile,dtype=np.int16,count=5*min(2**hashobject.hash_size/50,2**hashobject.hash_size-i))
 			V = np.fromfile(ValueFile,dtype=np.float32,count=min(2**hashobject.hash_size/50,2**hashobject.hash_size-i))
 			c0 = None
@@ -118,10 +147,10 @@ if __name__ == "__main__":
 		for g in G:
 			g.close()
 		for i in range(0,R,R/50):
-			os.system('sort -nk 1 %s%s.%s.ids.%d -o %s%s.%s.ids.%d' % (tmpdir,sample_id,outpart,i,tmpdir,sample_id,outpart,i))
+			os.system('sort -nk 1 %s%s.%s.ids.%d -o %s%s.%s.ids.%d' % (tmp_dir,sample_id,outpart,i,tmp_dir,sample_id,outpart,i))
 		f = gzip.open(infile)
 		r_id = 0
-		G = iter(open('%s%s.%s.ids.%d' % (tmpdir,sample_id,outpart,i)) for i in range(0,R,R/50))
+		G = iter(open('%s%s.%s.ids.%d' % (tmp_dir,sample_id,outpart,i)) for i in range(0,R,R/50))
 		g = G.next()
 		id_vals = np.fromstring(g.readline(),sep='\t')
 		EOF = False
@@ -178,7 +207,7 @@ if __name__ == "__main__":
 			r_id += 1
 		for f in CF.values():
 			f.close()
-		os.system('rm -rf '+tmpdir)
+		os.system('rm -rf '+tmp_dir)
 		print 'total reads written:',reads_written
 		print 'unique reads written:',unique_reads_written
 		

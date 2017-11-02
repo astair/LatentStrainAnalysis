@@ -8,7 +8,7 @@ from streaming_eigenhashes import StreamingEigenhashes
 
 # FUNC
 def interface():
-    parser = argparse.ArgumentParser(description="Creates the hash function.")
+    parser = argparse.ArgumentParser()
 
     parser.add_argument('-i',
                         required=True,

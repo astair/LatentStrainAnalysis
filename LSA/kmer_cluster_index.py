@@ -9,7 +9,7 @@ from streaming_eigenhashes import StreamingEigenhashes
 
 # FUNC
 def interface():
-    parser = argparse.ArgumentParser(description="Creates jobs.")
+    parser = argparse.ArgumentParser()
 
     parser.add_argument('-i',
                         required=True,
@@ -52,10 +52,10 @@ if __name__ == "__main__":
     if not output_dir.endswith('/'):
         output_dir += '/'
 
-    task_rank = args.task_rank
+    task_rank = args.task_rank - 1 
     thresh = args.threshold
 
-	hashobject = StreamingEigenhashes(inputdir,outputdir,get_pool=-1)
+	hashobject = StreamingEigenhashes(input_dir,output_dir,get_pool=-1)
 	Kmer_Hash_Count_Files = glob.glob(os.path.join(hashobject.input_path,'*.count.hash.conditioned'))
 	hashobject.path_dict = {}
 	for i in range(len(Kmer_Hash_Count_Files)):

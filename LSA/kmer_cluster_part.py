@@ -1,48 +1,74 @@
 #!/usr/bin/env python
 
-import sys, getopt
+import sys
+import argparse
 import glob, os
 import numpy as np
 from gensim import models
 from streaming_eigenhashes import StreamingEigenhashes
 
-help_message = 'usage example: python kmer_cluster_part.py -r 1 -i /project/home/hashed_reads/ -o /project/home/cluster_vectors/'
+# FUNC
+def interface():
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument('-i',
+                        required=True,
+                        dest='IN',
+                        type=str,
+                        metavar='<input_dir>',
+                        help='The directory containing the original reads.')
+
+    parser.add_argument('-o',
+                        required=True,
+                        dest='OUT',
+                        type=str,
+                        metavar='<output_dir>',
+                        help='The output directory for the hashed reads.')
+
+    parser.add_argument('-r',
+                        required=True,
+                        dest='task_rank',
+                        type=int,
+                        help='Task rank of the current job.')    
+
+    parser.add_argument('-t',
+                        dest='threshold',
+                        type=float,
+                        help='Threshold.')
+
+    args = parser.parse_args()
+    return args
+
+
+# MAIN
 if __name__ == "__main__":
-	try:
-		opts, args = getopt.getopt(sys.argv[1:],'hr:i:o:t:',["filerank=","inputdir=","outputdir=","thresh="])
-	except:
-		print help_message
-		sys.exit(2)
-	for opt, arg in opts:
-		if opt in ('-h','--help'):
-			print help_message
-			sys.exit()
-		elif opt in ('-i','--inputdir'):
-			inputdir = arg
-			if inputdir[-1] != '/':
-				inputdir += '/'
-		elif opt in ('-o','--outputdir'):
-			outputdir = arg
-			if outputdir[-1] != '/':
-				outputdir += '/'
-		elif opt in ('-r','--filerank'):
-			fr = int(arg) - 1
-		elif opt in ('-t','--thresh'):
-			thresh = float(arg)
-	hashobject = StreamingEigenhashes(inputdir,outputdir,get_pool=-1)
+    args = interface()
+
+    input_dir = os.path.abspath(args.IN)
+    if not input_dir.endswith('/'):
+        input_dir += '/'
+
+    output_dir = os.path.abspath(args.OUT)
+    if not output_dir.endswith('/'):
+        output_dir += '/'
+
+    task_rank = args.task_rank - 1 
+    thresh = args.threshold
+
+	hashobject = StreamingEigenhashes(input_dir,output_dir,get_pool=-1)
 	Kmer_Hash_Count_Files = glob.glob(os.path.join(hashobject.input_path,'*.count.hash.conditioned'))
 	hashobject.path_dict = {}
 	for i in range(len(Kmer_Hash_Count_Files)):
 		hashobject.path_dict[i] = Kmer_Hash_Count_Files[i]
 	lsi = models.LsiModel.load(hashobject.output_path+'kmer_lsi.gensim')
 	Index = np.load(hashobject.output_path+'cluster_index.npy')
-	i = fr*10**6
+	i = task_rank*10**6
 	o = (i,min(10**6,2**hashobject.hash_size-i))
 	hashobject.cluster_thresh = thresh
 	Ci = hashobject.lsi_cluster_part(o,lsi,Index)
 	for ci,c in enumerate(Ci):
 		try:
-			np.save(hashobject.output_path+str(ci)+'/'+str(fr)+'.npy',c)
+			np.save(hashobject.output_path+str(ci)+'/'+str(task_rank)+'.npy',c)
 		except IOError:
 			os.system('mkdir '+hashobject.output_path+str(ci))
-			np.save(hashobject.output_path+str(ci)+'/'+str(fr)+'.npy',c)
+			np.save(hashobject.output_path+str(ci)+'/'+str(task_rank)+'.npy',c)
