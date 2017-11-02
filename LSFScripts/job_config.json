@@ -5,8 +5,9 @@
             "outfile": "CreateHash_Job.q",
             "header": [
                 "#SBATCH -J CreateHash",
-                "#SBATCH -o {0}Logs/CreateHash-Out%I.out",
-                "#SBATCH -e {0}Logs/CreateHash-Err%I.err"],
+                "#SBATCH -p 1week",
+                "#SBATCH -o {0}Logs/CreateHash-Out.out",
+                "#SBATCH -e {0}Logs/CreateHash-Err.err"],
             "body": [
                 "create_hash.py -i {0}original_reads/ -o {0}hashed_reads/ -k 33 -s 31"]},
 
@@ -16,6 +17,7 @@
             "header": [
                 "#SBATCH -J HashReads[1-{array_size}]",
                 "#SBATCH --array=1-{array_size}",
+                "#SBATCH -p 1week",
                 "#SBATCH -o {0}Logs/HashReads-Out%I.out",
                 "#SBATCH -e {0}Logs/HashReads-Err%I.err",
                 "#SBATCH -M 8"],
@@ -28,6 +30,7 @@
             "header": [
                 "#SBATCH -J MergeHash[1-{array_size}]",
                 "#SBATCH --array=1-{array_size}",
+                "#SBATCH -p 1week",
                 "#SBATCH -o {0}Logs/MergeHash-Out-%I.out",
                 "#SBATCH -e {0}Logs/MergeHash-Err-%I.err",
                 "#SBATCH -t 53:58",
@@ -43,6 +46,7 @@
             "header": [
                 "#SBATCH -J CombineFractions[1-{array_size}]",
                 "#SBATCH --array=1-{array_size}",
+                "#SBATCH -p 1week",
                 "#SBATCH -o {0}Logs/CombineFractions-Out-%I.out",
                 "#SBATCH -e {0}Logs/CombineFractions-Err-%I.err",
                 "#SBATCH -q week",
@@ -57,6 +61,7 @@
             "outfile": "GlobalWeights_Job.q",
             "header": [
                 "#SBATCH -J GlobalWeights",
+                "#SBATCH -p 1week",
                 "#SBATCH -o {0}Logs/GlobalWeights-Out.out",
                 "#SBATCH -e {0}Logs/GlobalWeights-Err.err",
                 "#SBATCH -q week",
@@ -72,6 +77,7 @@
             "header": [
                 "#SBATCH -J KmerCorpus[1-{array_size}]",
                 "#SBATCH --array=1-{array_size}",
+                "#SBATCH -p 1week",
                 "#SBATCH -o {0}Logs/KmerCorpus-Out-%I.out",
                 "#SBATCH -e {0}Logs/KmerCorpus-Err-%I.err",
                 "#SBATCH -q hour",
@@ -86,9 +92,9 @@
             "outfile": "KmerLSI_Job.q",
             "header": [
                 "#SBATCH -J KmerLSI",
+                "#SBATCH -p 1week",
                 "#SBATCH -o {0}Logs/KmerLSI-Out.out",
                 "#SBATCH -e {0}Logs/KmerLSI-Err.err",
-                "#SBATCH -q week",
                 "#SBATCH -n 6",
                 "#SBATCH -R 'rusage[mem=4] span[hosts=1]'",
                 "#SBATCH -M 10",
@@ -105,9 +111,9 @@
             "outfile": "KmerClusterIndex_Job.q",
             "header": [
                 "#SBATCH -J KmerClusterIndex",
+                "#SBATCH -p 1week",
                 "#SBATCH -o {0}Logs/KmerClusterIndex-Out.out",
                 "#SBATCH -e {0}Logs/KmerClusterIndex-Err.err",
-                "#SBATCH -q week",
                 "#SBATCH -R 'rusage[mem=1]'",
                 "#SBATCH -M 35"],
             "body": [
@@ -121,10 +127,9 @@
             "array": ["hashed_reads/","*.hashq.*"],
             "header": [
                 "#SBATCH -J KmerClusterParts[1-%parts%]",
+                "#SBATCH -p htc",
                 "#SBATCH -o {0}Logs/KmerClusterParts-Out-%I.out",
                 "#SBATCH -e {0}Logs/KmerClusterParts-Err-%I.err",
-                "#SBATCH -q hour",
-                "#SBATCH -t 3:59",
                 "#SBATCH -R 'rusage[mem=1:argon_io=3]'",
                 "#SBATCH -M 4"],
             "body": [
@@ -136,10 +141,9 @@
             "array": ["hashed_reads/","*.hashq.*"],
             "header": [
                 "#SBATCH -J KmerClusterMerge[1-%clusters%]",
+                "#SBATCH -p htc",
                 "#SBATCH -o {0}Logs/KmerClusterMerge-Out-%I.out",
                 "#SBATCH -e {0}Logs/KmerClusterMerge-Err-%I.err",
-                "#SBATCH -q hour",
-                "#SBATCH -t 3:59",
                 "#SBATCH -R 'rusage[mem=1]'",
                 "#SBATCH -M 8"],
             "body": [
@@ -150,10 +154,9 @@
             "outfile": "KmerClusterCols_Job.q",
             "header": [
                 "#SBATCH -J KmerClusterCols",
+                "#SBATCH -p 1day",
                 "#SBATCH -o {0}Logs/KmerClusterCols-Out.out",
                 "#SBATCH -e {0}Logs/KmerClusterCols-Err.err",
-                "#SBATCH -q flower",
-                "#SBATCH -t 71:58",
                 "#SBATCH -R 'rusage[mem=40]'",
                 "#SBATCH -M 70"],
             "body": [
@@ -164,10 +167,9 @@
             "array": ["hashed_reads/","*.hashq.*"],
             "header": [
                 "#SBATCH -J ReadPartitions[1-",
+                "#SBATCH -p 1week",
                 "#SBATCH -o {0}Logs/ReadPartitions-Out-%I.out",
                 "#SBATCH -e {0}Logs/ReadPartitions-Err-%I.err",
-                "#SBATCH -q week",
-                "#SBATCH -t 45:10",
                 "#SBATCH -R 'rusage[mem=3:argon_io=3]'",
                 "#SBATCH -M 20"],
             "body": [
@@ -179,10 +181,9 @@
             "array": ["cluster_vectors/","*.cluster.npy"],
             "header": [
                 "#SBATCH -J MergeIntermediatePartitions[1-",
+                "#SBATCH -p htc",
                 "#SBATCH -o {0}Logs/MergeIntermediatePartitions-Out-%I.out",
                 "#SBATCH -e {0}Logs/MergeIntermediatePartitions-Err-%I.err",
-                "#SBATCH -q hour",
-                "#SBATCH -t 1:55",
                 "#SBATCH -M 2",
                 "#SBATCH -R 'rusage[argon_io=3]'"],
             "body": [
@@ -194,10 +195,9 @@
             "array": ["cluster_vectors/","*.cluster.npy"],
             "header": [
                 "#SBATCH -J SplitPairs[1-",
+                "#SBATCH -p htc",
                 "#SBATCH -o {0}Logs/SplitPairs-Out-%I.out",
                 "#SBATCH -e {0}Logs/SplitPairs-Err-%I.err",
-                "#SBATCH -q hour",
-                "#SBATCH -t 3:59",
                 "#SBATCH -R 'rusage[argon_io=3]'",
                 "#SBATCH -M 8"],
             "body": [
@@ -209,10 +209,9 @@
             "array": ["cluster_vectors/","*.cluster.npy"],
             "header": [
                 "#SBATCH -J PhylerClassify[1-",
+                "#SBATCH -p htc",
                 "#SBATCH -o {0}Logs/PhylerClassify-Out-%I.out",
                 "#SBATCH -e {0}Logs/PhylerClassify-Err-%I.err",
-                "#SBATCH -q hour",
-                "#SBATCH -t 3:55",
                 "#SBATCH -M 4","source /broad/software/scripts/useuse",
                 "reuse BLAST"],
             "body": [
@@ -224,10 +223,9 @@
             "array": ["cluster_vectors/","*.cluster.npy"],
             "header": [
                 "#SBATCH -J PhylerIdentify[1-",
+                "#SBATCH -p htc",
                 "#SBATCH -o {0}Logs/PhylerIdentify-Out-%I.out",
                 "#SBATCH -e {0}Logs/PhylerIdentify-Err-%I.err",
-                "#SBATCH -q hour",
-                "#SBATCH -t 3:55",
                 "#SBATCH -M 2"],
             "body": [
                 "sleep $(($SLURM_ARRAY_TASK_ID % 60))",
@@ -237,10 +235,9 @@
             "outfile": "PhylerSummary_Job.q",
             "header": [
                 "#SBATCH -J PhylerSummary",
+                "#SBATCH -p htc",
                 "#SBATCH -o {0}Logs/PhylerSummary-Out.out",
                 "#SBATCH -e {0}Logs/PhylerSummary-Err.err",
-                "#SBATCH -q hour",
-                "#SBATCH -t 1:55",
                 "#SBATCH -M 2"],
             "body": [
                 "phyler_summary.py -i {0}phyler/"]}
