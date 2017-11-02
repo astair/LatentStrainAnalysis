@@ -14,7 +14,7 @@ def interface():
                         dest='IN',
                         type=str,
                         metavar='<input_dir>',
-                        help='The inoput directory.')
+                        help='The input directory.')
 
     parser.add_argument('-o',
                         required=True,

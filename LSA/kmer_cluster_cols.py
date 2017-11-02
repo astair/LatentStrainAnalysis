@@ -1,30 +1,46 @@
 #!/usr/bin/env python
 
-import sys, getopt
+import sys
+import argparse
 import glob, os
 import numpy as np
 from streaming_eigenhashes import StreamingEigenhashes
 
-help_message = 'usage example: python kmer_cluster_cols.py -i /project/home/hashed_reads/ -o /project/home/cluster_vectors/'
+# FUNC
+def interface():
+    parser = argparse.ArgumentParser(description="Creates the hash function.")
+
+    parser.add_argument('-i',
+                        required=True,
+                        dest='IN',
+                        type=str,
+                        metavar='<input_dir>',
+                        help='The input directory.')
+
+    parser.add_argument('-o',
+                        required=True,
+                        dest='OUT',
+                        type=str,
+                        metavar='<output_dir>',
+                        help='The output directory.')
+
+    args = parser.parse_args()
+    return args
+
+
+# MAIN
 if __name__ == "__main__":
-	try:
-		opts, args = getopt.getopt(sys.argv[1:],'hi:o:p:',["inputdir=","outputdir="])
-	except:
-		print help_message
-		sys.exit(2)
-	for opt, arg in opts:
-		if opt in ('-h','--help'):
-			print help_message
-			sys.exit()
-		elif opt in ('-i','--inputdir'):
-			inputdir = arg
-			if inputdir[-1] != '/':
-				inputdir += '/'
-		elif opt in ('-o','--outputdir'):
-			outputdir = arg
-			if outputdir[-1] != '/':
-				outputdir += '/'
-	hashobject = StreamingEigenhashes(inputdir,outputdir,get_pool=-1)
+	args = interface()
+
+    input_dir = os.path.abspath(args.IN)
+    if not input_dir.endswith('/'):
+        input_dir += '/'
+
+    output_dir = os.path.abspath(args.OUT)
+    if not output_dir.endswith('/'):
+        output_dir += '/'
+
+	hashobject = StreamingEigenhashes(input_dir,output_dir,get_pool=-1)
 	FP = glob.glob(os.path.join(hashobject.output_path,'*.cluster.npy'))
 	FP = [(int(fp[fp.rfind('/')+1:fp.index('.cluster')]),fp) for fp in FP]
 	I = np.load(hashobject.output_path+'cluster_index.npy')
