@@ -35,6 +35,15 @@ class HashedRead(object):
             return False
 
 # FUNC
+def open_gz(infile, mode="rt"):
+    """Takes input and uncompresses gzip if needed
+    """
+
+    if infile.endswith(".gz") or ".gz." in infile:
+        return gzip.open(infile, mode=mode)
+    else:
+        return open(infile, mode=mode)
+
 def hash_read_parser(infile):
     """Parses a HASHQ file and returns a HashedRead object iterator
     """
@@ -65,5 +74,4 @@ def hash_read_generator(f, max_reads=10**10):
         line = str(f.readline().strip())
         bins = np.fromstring(line, dtype=np.uint64, sep=',')
         n += 1
-
         yield HashedRead(name, k, bins)

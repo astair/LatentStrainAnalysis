@@ -97,7 +97,7 @@ if __name__ == "__main__":
     hashobject = Fastq_Reader(input_dir, output_dir)
     reads_file_name = hashobject.input_path + file_prefix + '.fastq' + file_split
 
-    with Fq.open_gz(reads_file_name, 'r') as f:
+    with Fq.open_gz(reads_file_name) as f:
         hashobject.quality_codes = Fq.set_quality_codes(reads_file_name)
         print(hashobject.output_path + file_prefix + '.hashq' + file_split + '.gz')
         with gzip.open(hashobject.output_path + file_prefix + '.hashq' + file_split + '.gz', 'wt') as g:

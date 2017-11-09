@@ -77,7 +77,7 @@ def get_record(infile, position):
 
     return record
 
-def open_gz(infile, mode="r"):
+def open_gz(infile, mode="rt"):
     """Takes input and uncompresses gzip if needed
     """
 
@@ -87,6 +87,9 @@ def open_gz(infile, mode="r"):
         return open(infile, mode=mode)
 
 def set_quality_codes(infile):
+    """Guesses the format of the quality codes and returns a dict for convarsion
+    """
+
     fastq = fastq_parser(infile)
     sampled_reads = 0
     o33 = 0

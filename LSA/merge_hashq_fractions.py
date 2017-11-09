@@ -57,9 +57,11 @@ if __name__ == "__main__":
     FP = [fp[fp.rfind('/')+1:] for fp in FP]
     FP = list(unique([fp[:fp.index('.')] for fp in FP]))
     file_prefix = FP[task_rank]
+
     hashobject = Fastq_Reader(input_dir, output_dir)
     H = hashobject.merge_count_fractions(file_prefix)
     H = np.array(H, dtype=np.uint16)
     nz = np.nonzero(H)[0]
     np.save(hashobject.output_path + file_prefix + '.nonzero.npy', nz)
-    print('sample {0} has {1} nonzero elements and {2} total observed kmers'.format(file_prefix, len(nz), H.sum()))
+
+    print('Sample {0} has {1} nonzero elements and {2} total observed kmers'.format(file_prefix, len(nz), H.sum()))

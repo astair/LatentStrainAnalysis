@@ -39,21 +39,20 @@ class Hash_Counting(LSA):
 	def merge_count_fractions(self,fileprefix):
 		H = (c_uint16 * 2**self.hash_size)()
 		FP = glob.glob(os.path.join(self.output_path, fileprefix + '.count.hash.*'))
-		print(FP)
 		if len(FP) == 0:
-			print('WARNING: no files like {0}.count.hash.* found'.format(fileprefix))
+			print('WARNING: No files like {0}.count.hash.* found'.format(fileprefix))
 		for fp in FP:
 			H1 = self.open_count_hash(fp)
-			# unfortunately we can't just add, due to overflow
+			# Unfortunately we can't just add, due to overflow
 			for i, x in enumerate(H1):
 				if x > 0:
 					H[i] = min(65535, H[i] + x)
 			del H1
 		if len(FP) > 0:
-			with gzip.open(self.output_path + fileprefix + '.count.hash', 'wb') as f:
+			with open(self.output_path + fileprefix + '.count.hash', 'wb') as f:
 				f.write(H)
-		for fp in FP:
-			os.system('rm ' + fp)
+		# for fp in FP:
+		# 	os.system('rm ' + fp)
 		return H
 
 	def open_count_hash(self,file_path):

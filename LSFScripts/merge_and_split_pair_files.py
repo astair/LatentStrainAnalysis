@@ -40,7 +40,7 @@ def interface():
     args = parser.parse_args()
     return args
 
-def open_gz(infile, mode="r"):
+def open_gz(infile, mode="rt"):
     """Takes input and uncompresses gzip if needed
     """
 
@@ -76,7 +76,7 @@ def split_singletons(sing_path, out_prefix):
 
     for line in f1:
         if i % 4000000 == 0:
-            f0 = gzip.open(out_prefix + '.singleton.fastq' + split_suffix[ss], 'w')
+            f0 = gzip.open(out_prefix + '.singleton.fastq' + split_suffix[ss], 'wt')
             ss += 1
         f0.write(line)
         reads_written += .25
@@ -106,7 +106,7 @@ if __name__ == "__main__":
         r1len = 1
         ss = 0
         while r1len > 0:
-            with gzip.open(out + '.interleaved.fastq' + split_suffix[ss],'w') as f0:
+            with gzip.open(out + '.interleaved.fastq' + split_suffix[ss],'wt') as f0:
                 r1len, rw = merge_pairs(f1, f2, f0)
                 ss += 1
                 mates_written += rw
