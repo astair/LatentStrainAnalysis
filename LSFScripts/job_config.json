@@ -6,8 +6,8 @@
             "header": [
                 "#SBATCH -J CreateHash",
                 "#SBATCH -p 1week",
-                "#SBATCH -o {0}Logs/CreateHash-Out.out",
-                "#SBATCH -e {0}Logs/CreateHash-Err.err",
+                "#SBATCH -o {0}Logs/CreateHash.out",
+                "#SBATCH -e {0}Logs/CreateHash.err",
                 "#SBATCH -t 2-00:00:00",
                 "module purge",
                 "module load Biopython"],
@@ -21,8 +21,8 @@
                 "#SBATCH -J HashReads[1-{array_size}]",
                 "#SBATCH --array=1-{array_size}",
                 "#SBATCH -p 1day",
-                "#SBATCH -o {0}Logs/HashReads-Out%I.out",
-                "#SBATCH -e {0}Logs/HashReads-Err%I.err",
+                "#SBATCH -o {0}Logs/HashReads%a.out",
+                "#SBATCH -e {0}Logs/HashReads%a.err",
                 "#SBATCH -t 02:00:00",
                 "module purge",
                 "module load Biopython"],
@@ -36,8 +36,8 @@
                 "#SBATCH -J MergeHash[1-{array_size}]",
                 "#SBATCH --array=1-{array_size}",
                 "#SBATCH -p 1day",
-                "#SBATCH -o {0}Logs/MergeHash-Out-%I.out",
-                "#SBATCH -e {0}Logs/MergeHash-Err-%I.err",
+                "#SBATCH -o {0}Logs/MergeHash-%a.out",
+                "#SBATCH -e {0}Logs/MergeHash-%a.err",
                 "#SBATCH --mem-per-cpu=20G",
                 "#SBATCH -t 01:00:00",
                 "module purge",
@@ -52,9 +52,12 @@
                 "#SBATCH -J CombineFractions[1-{array_size}]",
                 "#SBATCH --array=1-{array_size}",
                 "#SBATCH -p htc",
-                "#SBATCH -o {0}Logs/CombineFractions-Out-%I.out",
-                "#SBATCH -e {0}Logs/CombineFractions-Err-%I.err",
-                "#SBATCH -t 30:00"],
+                "#SBATCH -o {0}Logs/CombineFractions-%a.out",
+                "#SBATCH -e {0}Logs/CombineFractions-%a.err",
+                "#SBATCH --mem-per-cpu=20G",
+                "#SBATCH -t 30:00",
+                "module purge",
+                "module load Biopython"],
             "body": [
                 "merge_hashq_fractions.py -r ${{SLURM_ARRAY_TASK_ID}} -i {0}hashed_reads/ -o {0}hashed_reads/"]},
 
@@ -63,8 +66,8 @@
             "header": [
                 "#SBATCH -J GlobalWeights",
                 "#SBATCH -p 1day",
-                "#SBATCH -o {0}Logs/GlobalWeights-Out.out",
-                "#SBATCH -e {0}Logs/GlobalWeights-Err.err",
+                "#SBATCH -o {0}Logs/GlobalWeights.out",
+                "#SBATCH -e {0}Logs/GlobalWeights.err",
                 "#SBATCH -t 2:00:00"],
             "body": [
                 "tfidf_corpus.py -i {0}hashed_reads/ -o {0}cluster_vectors/"]},
@@ -76,8 +79,8 @@
                 "#SBATCH -J KmerCorpus[1-{array_size}]",
                 "#SBATCH --array=1-{array_size}",
                 "#SBATCH -p htc",
-                "#SBATCH -o {0}Logs/KmerCorpus-Out-%I.out",
-                "#SBATCH -e {0}Logs/KmerCorpus-Err-%I.err",
+                "#SBATCH -o {0}Logs/KmerCorpus-%a.out",
+                "#SBATCH -e {0}Logs/KmerCorpus-%a.err",
                 "#SBATCH -t 5:00"],
             "body": [
                 "kmer_corpus.py -r ${{SLURM_ARRAY_TASK_ID}} -i {0}hashed_reads/ -o {0}cluster_vectors/"]},
@@ -87,8 +90,8 @@
             "header": [
                 "#SBATCH -J KmerLSI",
                 "#SBATCH -p 1week",
-                "#SBATCH -o {0}Logs/KmerLSI-Out.out",
-                "#SBATCH -e {0}Logs/KmerLSI-Err.err",
+                "#SBATCH -o {0}Logs/KmerLSI.out",
+                "#SBATCH -e {0}Logs/KmerLSI.err",
                 "#SBATCH -n 6",
                 "#SBATCH -R 'rusage[mem=4] span[hosts=1]'",
                 "#SBATCH -M 10",
@@ -106,8 +109,8 @@
             "header": [
                 "#SBATCH -J KmerClusterIndex",
                 "#SBATCH -p 1week",
-                "#SBATCH -o {0}Logs/KmerClusterIndex-Out.out",
-                "#SBATCH -e {0}Logs/KmerClusterIndex-Err.err",
+                "#SBATCH -o {0}Logs/KmerClusterIndex.out",
+                "#SBATCH -e {0}Logs/KmerClusterIndex.err",
                 "#SBATCH -R 'rusage[mem=1]'",
                 "#SBATCH -M 35"],
             "body": [
@@ -122,8 +125,8 @@
             "header": [
                 "#SBATCH -J KmerClusterParts[1-%parts%]",
                 "#SBATCH -p htc",
-                "#SBATCH -o {0}Logs/KmerClusterParts-Out-%I.out",
-                "#SBATCH -e {0}Logs/KmerClusterParts-Err-%I.err",
+                "#SBATCH -o {0}Logs/KmerClusterParts-%a.out",
+                "#SBATCH -e {0}Logs/KmerClusterParts-%a.err",
                 "#SBATCH -R 'rusage[mem=1:argon_io=3]'",
                 "#SBATCH -M 4"],
             "body": [
@@ -136,8 +139,8 @@
             "header": [
                 "#SBATCH -J KmerClusterMerge[1-%clusters%]",
                 "#SBATCH -p htc",
-                "#SBATCH -o {0}Logs/KmerClusterMerge-Out-%I.out",
-                "#SBATCH -e {0}Logs/KmerClusterMerge-Err-%I.err",
+                "#SBATCH -o {0}Logs/KmerClusterMerge-%a.out",
+                "#SBATCH -e {0}Logs/KmerClusterMerge-%a.err",
                 "#SBATCH -R 'rusage[mem=1]'",
                 "#SBATCH -M 8"],
             "body": [
@@ -149,8 +152,8 @@
             "header": [
                 "#SBATCH -J KmerClusterCols",
                 "#SBATCH -p 1day",
-                "#SBATCH -o {0}Logs/KmerClusterCols-Out.out",
-                "#SBATCH -e {0}Logs/KmerClusterCols-Err.err",
+                "#SBATCH -o {0}Logs/KmerClusterCols.out",
+                "#SBATCH -e {0}Logs/KmerClusterCols.err",
                 "#SBATCH -R 'rusage[mem=40]'",
                 "#SBATCH -M 70"],
             "body": [
@@ -162,8 +165,8 @@
             "header": [
                 "#SBATCH -J ReadPartitions[1-",
                 "#SBATCH -p 1week",
-                "#SBATCH -o {0}Logs/ReadPartitions-Out-%I.out",
-                "#SBATCH -e {0}Logs/ReadPartitions-Err-%I.err",
+                "#SBATCH -o {0}Logs/ReadPartitions-%a.out",
+                "#SBATCH -e {0}Logs/ReadPartitions-%a.err",
                 "#SBATCH -R 'rusage[mem=3:argon_io=3]'",
                 "#SBATCH -M 20"],
             "body": [
@@ -176,8 +179,8 @@
             "header": [
                 "#SBATCH -J MergeIntermediatePartitions[1-",
                 "#SBATCH -p htc",
-                "#SBATCH -o {0}Logs/MergeIntermediatePartitions-Out-%I.out",
-                "#SBATCH -e {0}Logs/MergeIntermediatePartitions-Err-%I.err",
+                "#SBATCH -o {0}Logs/MergeIntermediatePartitions-%a.out",
+                "#SBATCH -e {0}Logs/MergeIntermediatePartitions-%a.err",
                 "#SBATCH -M 2",
                 "#SBATCH -R 'rusage[argon_io=3]'"],
             "body": [
@@ -190,8 +193,8 @@
             "header": [
                 "#SBATCH -J SplitPairs[1-",
                 "#SBATCH -p htc",
-                "#SBATCH -o {0}Logs/SplitPairs-Out-%I.out",
-                "#SBATCH -e {0}Logs/SplitPairs-Err-%I.err",
+                "#SBATCH -o {0}Logs/SplitPairs-%a.out",
+                "#SBATCH -e {0}Logs/SplitPairs-%a.err",
                 "#SBATCH -R 'rusage[argon_io=3]'",
                 "#SBATCH -M 8"],
             "body": [
@@ -204,8 +207,8 @@
             "header": [
                 "#SBATCH -J PhylerClassify[1-",
                 "#SBATCH -p htc",
-                "#SBATCH -o {0}Logs/PhylerClassify-Out-%I.out",
-                "#SBATCH -e {0}Logs/PhylerClassify-Err-%I.err",
+                "#SBATCH -o {0}Logs/PhylerClassify-%a.out",
+                "#SBATCH -e {0}Logs/PhylerClassify-%a.err",
                 "#SBATCH -M 4","source /broad/software/scripts/useuse",
                 "reuse BLAST"],
             "body": [
@@ -218,8 +221,8 @@
             "header": [
                 "#SBATCH -J PhylerIdentify[1-",
                 "#SBATCH -p htc",
-                "#SBATCH -o {0}Logs/PhylerIdentify-Out-%I.out",
-                "#SBATCH -e {0}Logs/PhylerIdentify-Err-%I.err",
+                "#SBATCH -o {0}Logs/PhylerIdentify-%a.out",
+                "#SBATCH -e {0}Logs/PhylerIdentify-%a.err",
                 "#SBATCH -M 2"],
             "body": [
                 "sleep $(($SLURM_ARRAY_TASK_ID % 60))",
@@ -230,8 +233,8 @@
             "header": [
                 "#SBATCH -J PhylerSummary",
                 "#SBATCH -p htc",
-                "#SBATCH -o {0}Logs/PhylerSummary-Out.out",
-                "#SBATCH -e {0}Logs/PhylerSummary-Err.err",
+                "#SBATCH -o {0}Logs/PhylerSummary.out",
+                "#SBATCH -e {0}Logs/PhylerSummary.err",
                 "#SBATCH -M 2"],
             "body": [
                 "phyler_summary.py -i {0}phyler/"]}

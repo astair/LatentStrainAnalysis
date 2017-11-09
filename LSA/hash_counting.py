@@ -57,7 +57,7 @@ class Hash_Counting(LSA):
 		return H
 
 	def open_count_hash(self,file_path):
-		with gzip.open(file_path, 'rb') as f:
+		with open(file_path, 'rb') as f:
 			H = (c_uint16 * 2**self.hash_size)()
 			f.readinto(H)
 		return H
