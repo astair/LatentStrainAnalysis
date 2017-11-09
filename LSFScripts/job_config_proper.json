@@ -7,10 +7,7 @@
                 "#SBATCH -J CreateHash",
                 "#SBATCH -p 1week",
                 "#SBATCH -o {0}Logs/CreateHash-Out.out",
-                "#SBATCH -e {0}Logs/CreateHash-Err.err",
-                "#SBATCH -t 2-00:00:00",
-                "module purge",
-                "module load Biopython"],
+                "#SBATCH -e {0}Logs/CreateHash-Err.err"],
             "body": [
                 "create_hash.py -i {0}original_reads/ -o {0}hashed_reads/ -k 33 -s 31"]},
 
@@ -20,14 +17,12 @@
             "header": [
                 "#SBATCH -J HashReads[1-{array_size}]",
                 "#SBATCH --array=1-{array_size}",
-                "#SBATCH -p 1day",
+                "#SBATCH -p 1week",
                 "#SBATCH -o {0}Logs/HashReads-Out%I.out",
                 "#SBATCH -e {0}Logs/HashReads-Err%I.err",
-                "#SBATCH -t 02:00:00",
-                "module purge",
-                "module load Biopython"],
+                "#SBATCH -M 8"],
             "body": [
-                "hash_fastq_reads.py -r ${{SLURM_ARRAY_TASK_ID}} -i {0}original_reads/ -o {0}hashed_reads/"]},
+                "sleep $(($SLURM_ARRAY_TASK_ID % 60))","hash_fastq_reads.py -r ${{SLURM_ARRAY_TASK_ID}} -i {0}original_reads/ -o {0}hashed_reads/"]},
 
         "MergeHash": {
             "outfile": "MergeHash_ArrayJob.q",
@@ -35,14 +30,14 @@
             "header": [
                 "#SBATCH -J MergeHash[1-{array_size}]",
                 "#SBATCH --array=1-{array_size}",
-                "#SBATCH -p 1day",
+                "#SBATCH -p 1week",
                 "#SBATCH -o {0}Logs/MergeHash-Out-%I.out",
                 "#SBATCH -e {0}Logs/MergeHash-Err-%I.err",
-                "#SBATCH --mem-per-cpu=20G",
-                "#SBATCH -t 01:00:00",
-                "module purge",
-                "module load Biopython"],
+                "#SBATCH -t 53:58",
+                "#SBATCH -R 'rusage[mem=4]'",
+                "#SBATCH -M 8"],
             "body": [
+                "sleep $(($SLURM_ARRAY_TASK_ID % 60))",
                 "merge_hashq_files.py -r ${{SLURM_ARRAY_TASK_ID}} -i {0}hashed_reads/ -o {0}hashed_reads/"]},
 
         "CombineFractions": {
@@ -51,21 +46,28 @@
             "header": [
                 "#SBATCH -J CombineFractions[1-{array_size}]",
                 "#SBATCH --array=1-{array_size}",
-                "#SBATCH -p htc",
+                "#SBATCH -p 1week",
                 "#SBATCH -o {0}Logs/CombineFractions-Out-%I.out",
                 "#SBATCH -e {0}Logs/CombineFractions-Err-%I.err",
-                "#SBATCH -t 30:00"],
+                "#SBATCH -q week",
+                "#SBATCH -t 23:58",
+                "#SBATCH -R 'rusage[mem=8]'",
+                "#SBATCH -M 20"],
             "body": [
+                "sleep $(($SLURM_ARRAY_TASK_ID % 60))",
                 "merge_hashq_fractions.py -r ${{SLURM_ARRAY_TASK_ID}} -i {0}hashed_reads/ -o {0}hashed_reads/"]},
 
         "GlobalWeights": {
             "outfile": "GlobalWeights_Job.q",
             "header": [
                 "#SBATCH -J GlobalWeights",
-                "#SBATCH -p 1day",
+                "#SBATCH -p 1week",
                 "#SBATCH -o {0}Logs/GlobalWeights-Out.out",
                 "#SBATCH -e {0}Logs/GlobalWeights-Err.err",
-                "#SBATCH -t 2:00:00"],
+                "#SBATCH -q week",
+                "#SBATCH -t 71:10",
+                "#SBATCH -R 'rusage[mem=25]'",
+                "#SBATCH -M 75"],
             "body": [
                 "tfidf_corpus.py -i {0}hashed_reads/ -o {0}cluster_vectors/"]},
 
@@ -75,11 +77,15 @@
             "header": [
                 "#SBATCH -J KmerCorpus[1-{array_size}]",
                 "#SBATCH --array=1-{array_size}",
-                "#SBATCH -p htc",
+                "#SBATCH -p 1week",
                 "#SBATCH -o {0}Logs/KmerCorpus-Out-%I.out",
                 "#SBATCH -e {0}Logs/KmerCorpus-Err-%I.err",
-                "#SBATCH -t 5:00"],
+                "#SBATCH -q hour",
+                "#SBATCH -t 3:58",
+                "#SBATCH -R 'rusage[mem=32]'",
+                "#SBATCH -M 45"],
             "body": [
+                "sleep $(($SLURM_ARRAY_TASK_ID % 60))",
                 "kmer_corpus.py -r ${{SLURM_ARRAY_TASK_ID}} -i {0}hashed_reads/ -o {0}cluster_vectors/"]},
 
         "KmerLSI": {

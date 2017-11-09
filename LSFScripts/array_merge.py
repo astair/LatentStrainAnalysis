@@ -63,6 +63,7 @@ if __name__ == "__main__":
 
     try:
         curr_reads_1 = reads_1[task_rank]
+        out = output_dir + curr_reads_1.split('/')[-1]
     except IndexError:
         curr_reads_1 = None    
 
@@ -73,10 +74,11 @@ if __name__ == "__main__":
 
     try:
         curr_single = reads_single[task_rank]
+        # This I can do better, but this should work for now:
+        # Actually this is horrible!
+        out = output_dir + curr_single.split('/')[-1]
     except IndexError:
         curr_single = None
 
-    # This I can do better, but this should work for now:
-    out = output_dir + curr_reads_1.split('/')[-1].split('.')[0]
     os.system('merge_and_split_pair_files.py -1 {0} -2 {1} -s {2} -o {3}'.format(curr_reads_1, curr_reads_2, curr_single, out))
 

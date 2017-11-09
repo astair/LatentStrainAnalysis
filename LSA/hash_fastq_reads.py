@@ -97,15 +97,14 @@ if __name__ == "__main__":
     hashobject = Fastq_Reader(input_dir, output_dir)
     reads_file_name = hashobject.input_path + file_prefix + '.fastq' + file_split
 
-    with open(reads_file_name, 'r') as f:
+    with Fq.open_gz(reads_file_name, 'r') as f:
         hashobject.quality_codes = Fq.set_quality_codes(reads_file_name)
-       
-        with gzip.open(hashobject.output_path + file_prefix + '.hashq' + file_split + '.gz', 'w') as out:
-            with io.TextIOWrapper(out, encoding='utf-8') as g:
+        print(hashobject.output_path + file_prefix + '.hashq' + file_split + '.gz')
+        with gzip.open(hashobject.output_path + file_prefix + '.hashq' + file_split + '.gz', 'wt') as g:
                 IDs = []
                 reads_hashed = 0
                 IDs, bins = hashobject.generator_to_bins(Fq.fastq_generator(f, max_reads=25000), rc=do_reverse_compliment)
                 for b in range(len(bins)):
                     reads_hashed += kmer_bins(bins[b], IDs, g)
 
-                print('Total reads hashed:', reads_hashed)
+                print('Total reads hashed: ' + str(reads_hashed))

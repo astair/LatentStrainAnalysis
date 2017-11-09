@@ -9,7 +9,6 @@ def interface():
     parser = argparse.ArgumentParser(description="Sets up the directories necessary for the pipeline in <output-dir> and creates the 'SplitInput_ArrayJob.q' script from the input veriables.")
 
     parser.add_argument('-1',
-                        required=True,
                         dest='READS_1',
                         nargs='+',
                         type=str,
@@ -17,7 +16,6 @@ def interface():
                         help='Comma separated list of R1 reads.')    
 
     parser.add_argument('-2',
-                        required=True,
                         dest='READS_2',
                         nargs='+',
                         type=str,
@@ -55,16 +53,9 @@ SplitInput_string = """#!/bin/bash
 #SBATCH -p 1week
 #SBATCH -o {1}Logs/SplitInput-Out%I.out
 #SBATCH -e {1}Logs/SplitInput-Err%I.err
-
 echo Date: `date`
 t1=`date +%s`
-
-### REMOVE LATER:
-source "/home/fleck/scripts/cluster_config.txt"
-PATH=$PATH:${{HOME}}/apps/LatentStrainAnalysis:${{HOME}}/apps/LatentStrainAnalysis/LSFScripts:${{HOME}}/apps/LatentStrainAnalysis/LSA
-
 ${{LSF_SCRIPTS}}/array_merge.py -r ${{SLURM_ARRAY_TASK_ID}} -1 {2} -2 {3} -s {4} -o {1}original_reads/
-
 echo Date: `date`
 t2=`date +%s`
 tdiff=`echo 'scale=3;('$t2'-'$t1')/3600' | bc`
@@ -75,10 +66,17 @@ echo 'Total time:  '$tdiff' hours'
 # MAIN
 if __name__ == "__main__":
     args = interface()
+    reads_1 = args.READS_1 
+    reads_2 = args.READS_2 
+    reads_2 = args.READS_2 
+    reads_single = args.SINGLETS 
 
-    reads_1 = " ".join(args.READS_1)
-    reads_2 = " ".join(args.READS_2)
-    reads_single = args.SINGLETS
+    if reads_1:
+        reads_1 = " ".join(reads_1)
+    if reads_2:
+        reads_2 = " ".join(reads_2)
+    if reads_single:
+        reads_single = " ".join(reads_single)
 
     output_dir = os.path.abspath(args.OUT)
     if not output_dir.endswith('/'):

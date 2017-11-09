@@ -32,7 +32,7 @@ class Hash_Counting(LSA):
 					for b in record.bins:
 						H[b] = min(65535, H[b] + 1)
 		if len(FP) > 0:
-			with gzip.open(outfile, 'wb') as f0:
+			with open(outfile, 'wb') as f0:
 				f0.write(H)
 		return H
 
@@ -108,6 +108,7 @@ class Hash_Counting(LSA):
 						Reads[read_id] = (l_info,[])
 					Reads[read_id][1].append((float(l_score),l_id))
 				except Exception as err:
+					print(err)
 					pass
 			f.close()
 		for read_id,values in Reads.iteritems():

@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+import gzip
+
 # CLASS 
 class FastqRecord(object):
     """Fastq object with name and sequence
@@ -79,7 +81,7 @@ def open_gz(infile, mode="r"):
     """Takes input and uncompresses gzip if needed
     """
 
-    if infile.endswith(".gz"):
+    if infile.endswith(".gz") or ".gz." in infile:
         return gzip.open(infile, mode=mode)
     else:
         return open(infile, mode=mode)

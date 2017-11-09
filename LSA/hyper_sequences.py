@@ -83,7 +83,7 @@ class Hyper_Sequences(LSA):
 
 	def one_wheel(self,w,reads_file):
 		S = []
-		with open(reads_file) as f:
+		with Fq.open_gz(reads_file) as f:
 			for s in range(self.hash_size):
 				L = self.pick_leaf_noloc(self.kmer_size, f)
 				P = self.affine_hull(L.values())
@@ -95,7 +95,7 @@ class Hyper_Sequences(LSA):
 		new_leaf = {}
 		complex_reads = [read for read in self.generator_to_coords(Fq.fastq_generator(f, max_reads=nodes))]
 		for record in complex_reads:
-			new_leaf[len(new_leaf)] = list(record.coords)
+			new_leaf[len(new_leaf)] = list(record[1])
 		return new_leaf
 
 	def affine_hull(self,linear_system):

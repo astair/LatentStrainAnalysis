@@ -93,14 +93,9 @@ if __name__ == "__main__":
     reads_single = args.SINGLETS
     out = args.out
 
-    if reads_1.endswith('.gz'): 
-        out_suffix='.fq.gz'
-    else:
-        out_suffix='.fq'
-
-    split_suffix = ['.00' + str(_) for _ in range(10)]
-    split_suffix += ['.0' + str(_) for _ in range(10,99)]
-    split_suffix += ['.' + str(_) for _ in range(100,999)]
+    split_suffix = ['.00' + str(n) for n in range(10)]
+    split_suffix += ['.0' + str(n) for n in range(10,99)]
+    split_suffix += ['.' + str(n) for n in range(100,999)]
 
     mates_written = 0
     singletons_written = 0
