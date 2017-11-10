@@ -125,7 +125,7 @@
             "outfile": "KmerClusterIndex_Job.q",
             "header": [
                 "#SBATCH -J KmerClusterIndex",
-                "#SBATCH -p 1week",
+                "#SBATCH -p htc",
                 "#SBATCH -o {0}Logs/KmerClusterIndex.out",
                 "#SBATCH -e {0}Logs/KmerClusterIndex.err",
                 "#SBATCH --mem=230G",
@@ -133,7 +133,7 @@
                 "module load Biopython",
                 "module load gensim"],
             "body": [
-                "kmer_cluster_index.py -i {0}hashed_reads/ -o {0}cluster_vectors/ -t 0.66",
+                "kmer_cluster_index.py -i {0}hashed_reads/ -o {0}cluster_vectors/ -t 0.68",
                 "create_jobs.py -j KmerClusterParts -i ./",
                 "X=`sed -n 1p {0}hashed_reads/hashParts.txt`",
                 "sed -i \"s/%parts%/$X/g\" {0}jobs/KmerClusterParts_ArrayJob.q",
@@ -146,26 +146,30 @@
             "array": ["hashed_reads/","*.hashq.*"],
             "header": [
                 "#SBATCH -J KmerClusterParts[1-%parts%]",
+                "#SBATCH --array=1-%parts%",
                 "#SBATCH -p htc",
                 "#SBATCH -o {0}Logs/KmerClusterParts-%a.out",
                 "#SBATCH -e {0}Logs/KmerClusterParts-%a.err",
                 "#SBATCH --mem-per-cpu=70G",
                 "module purge",
-                "module load Biopython"],
+                "module load Biopython",
+                "module load gensim"],
             "body": [
-                "kmer_cluster_part.py -r ${{SLURM_ARRAY_TASK_ID}} -i {0}hashed_reads/ -o {0}cluster_vectors/ -t 0.66"]},
+                "kmer_cluster_part.py -r ${{SLURM_ARRAY_TASK_ID}} -i {0}hashed_reads/ -o {0}cluster_vectors/ -t 0.68"]},
 
         "KmerClusterMerge": {
             "outfile": "KmerClusterMerge_ArrayJob.q",
             "array": ["hashed_reads/","*.hashq.*"],
             "header": [
                 "#SBATCH -J KmerClusterMerge[1-%clusters%]",
+                "#SBATCH --array=1-%clusters%",                
                 "#SBATCH -p htc",
                 "#SBATCH -o {0}Logs/KmerClusterMerge-%a.out",
                 "#SBATCH -e {0}Logs/KmerClusterMerge-%a.err",
                 "#SBATCH --mem-per-cpu=70G",
                 "module purge",
-                "module load Biopython"],
+                "module load Biopython",
+                "module load gensim"],
             "body": [
                 "kmer_cluster_merge.py -r ${{SLURM_ARRAY_TASK_ID}} -i {0}cluster_vectors/ -o {0}cluster_vectors/"]},
 
@@ -178,7 +182,8 @@
                 "#SBATCH -e {0}Logs/KmerClusterCols.err",
                 "#SBATCH --mem=230G",
                 "module purge",
-                "module load Biopython"],
+                "module load Biopython",
+                "module load gensim"],
             "body": [
                 "kmer_cluster_cols.py -i {0}hashed_reads/ -o {0}cluster_vectors/"]},
 
@@ -186,7 +191,8 @@
             "outfile": "ReadPartitions_ArrayJob.q",
             "array": ["hashed_reads/","*.hashq.*"],
             "header": [
-                "#SBATCH -J ReadPartitions[1-",
+                "#SBATCH -J ReadPartitions[1-{array_size}]",
+                "#SBATCH --array=1-{array_size}",
                 "#SBATCH -p 1week",
                 "#SBATCH -o {0}Logs/ReadPartitions-%a.out",
                 "#SBATCH -e {0}Logs/ReadPartitions-%a.err",
@@ -200,7 +206,8 @@
             "outfile": "MergeIntermediatePartitions_ArrayJob.q",
             "array": ["cluster_vectors/","*.cluster.npy"],
             "header": [
-                "#SBATCH -J MergeIntermediatePartitions[1-",
+                "#SBATCH -J MergeIntermediatePartitions[1-{array_size}]",
+                "#SBATCH --array=1-{array_size}",
                 "#SBATCH -p htc",
                 "#SBATCH -o {0}Logs/MergeIntermediatePartitions-%a.out",
                 "#SBATCH -e {0}Logs/MergeIntermediatePartitions-%a.err",
@@ -214,7 +221,8 @@
             "outfile": "SplitPairs_ArrayJob.q",
             "array": ["cluster_vectors/","*.cluster.npy"],
             "header": [
-                "#SBATCH -J SplitPairs[1-",
+                "#SBATCH -J SplitPairs[1-{array_size}]",
+                "#SBATCH --array=1-{array_size}",
                 "#SBATCH -p htc",
                 "#SBATCH -o {0}Logs/SplitPairs-%a.out",
                 "#SBATCH -e {0}Logs/SplitPairs-%a.err",
