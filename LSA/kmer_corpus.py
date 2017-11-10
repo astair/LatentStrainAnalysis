@@ -48,9 +48,9 @@ if __name__ == "__main__":
 
     task_rank = args.task_rank - 1 
 
-    hashobject = StreamingEigenhashes(input_dir,output_dir,get_pool=False)
+    hashobject = StreamingEigenhashes(input_dir, output_dir, get_pool=False)
     Kmer_Hash_Count_Files = glob.glob(os.path.join(hashobject.input_path,'*.count.hash'))
     print(Kmer_Hash_Count_Files)
-    #M = np.load(hashobject.input_path+'column_mask.npy')
+    # M = np.load(hashobject.input_path+'column_mask.npy')
     M = []
-    hashobject.kmer_corpus_to_disk(Kmer_Hash_Count_Files[task_rank],mask=M)
+    hashobject.kmer_corpus_to_disk(Kmer_Hash_Count_Files[task_rank], mask=M)

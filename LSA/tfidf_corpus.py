@@ -23,7 +23,7 @@ def interface():
                         dest='OUT',
                         type=str,
                         metavar='<output_dir>',
-                        help='The output directory.')
+                        help='The output directory.')    
 
     args = parser.parse_args()
     return args
@@ -44,5 +44,4 @@ if __name__ == "__main__":
     Kmer_Hash_Count_Files = glob.glob(os.path.join(hashobject.input_path, '*.nonzero.npy'))
     corpus_generator = hashobject.corpus_idf_from_hash_paths(Kmer_Hash_Count_Files)
     hashobject.train_tfidf(corpus_generator)
-    print(hashobject.global_weights)
     np.save(hashobject.output_path + 'global_weights.npy', hashobject.global_weights)

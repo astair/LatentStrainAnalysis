@@ -9,6 +9,7 @@ from LSA import LSA
 from hyper_sequences import Hyper_Sequences
 from hash_counting import Hash_Counting
 
+
 class StreamingEigenhashes(Hash_Counting,Hyper_Sequences,LSA):
 
 	def __init__(self,inpath,outpath,get_pool=8):

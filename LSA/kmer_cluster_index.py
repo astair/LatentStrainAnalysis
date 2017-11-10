@@ -34,7 +34,7 @@ def interface():
     parser.add_argument('-t',
                         dest='threshold',
                         type=float,
-                        help='Threshold.')
+                        help='Threshold affects the partitioning resolution. Recommendation: 0.5-0.65 for large scale (Tb), 0.6-0.8 for medium scale (100Gb), >0.75 for small scale (10Gb) datasets.')
 
     args = parser.parse_args()
     return args
@@ -58,13 +58,13 @@ if __name__ == "__main__":
 	hashobject = StreamingEigenhashes(input_dir,output_dir,get_pool=-1)
 	Kmer_Hash_Count_Files = glob.glob(os.path.join(hashobject.input_path,'*.count.hash.conditioned'))
 	hashobject.path_dict = {}
+
 	for i in range(len(Kmer_Hash_Count_Files)):
 		hashobject.path_dict[i] = Kmer_Hash_Count_Files[i]
-	lsi = models.LsiModel.load(hashobject.output_path+'kmer_lsi.gensim')
+	lsi = models.LsiModel.load(hashobject.output_path + 'kmer_lsi.gensim')
 	hashobject.cluster_thresh = thresh
 	Index = hashobject.lsi_cluster_index(lsi)
-	np.save(hashobject.output_path+'cluster_index.npy',Index)
-	print 'cluster index has shape:',Index.shape
-	f = open(hashobject.output_path+'numClusters.txt','w')
-	f.write('%d\n' % Index.shape[0])
-	f.close()
+	np.save(hashobject.output_path + 'cluster_index.npy', Index)
+	print('Cluster index has shape: ' + str(Index.shape))
+	with open(hashobject.output_path + 'numClusters.txt', 'w') as f:
+	   f.write('%d\n' % Index.shape[0])
