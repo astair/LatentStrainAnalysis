@@ -58,6 +58,6 @@ if __name__ == "__main__":
         hashobject.path_dict[i] = Kmer_Hash_Count_Files[i]
     corpus = hashobject.kmer_corpus_from_disk()
     # This is a hack. Should do a better job chosing num_dims
-    lsi = hashobject.train_kmer_lsi(corpus,num_dims=len(hashobject.path_dict) * 4 / 5, single=singleInstance)
+    lsi = hashobject.train_kmer_lsi(corpus, num_dims=len(hashobject.path_dict) * 4 / 5, single=singleInstance)
     lsi.save(hashobject.output_path + 'kmer_lsi.gensim')
     

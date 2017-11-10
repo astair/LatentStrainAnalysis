@@ -51,7 +51,7 @@ class StreamingEigenhashes(Hash_Counting,Hyper_Sequences,LSA):
 			o = (0,2**self.hash_size)
 		o = (o[0],min(o[1],2**self.hash_size - o[0]))
 		F = [open(self.path_dict[i],'rb') for i in range(len(self.path_dict))]
-		print(F)
+		# print(F)
 		for f in F:
 			f.seek(o[0] * 4)
 		class NewCorpus(object):
@@ -91,7 +91,7 @@ class StreamingEigenhashes(Hash_Counting,Hyper_Sequences,LSA):
 			seed_vectors = lsi[self.kmer_corpus_from_disk(o=(np.random.randint(0,2**self.hash_size-chunk_size),chunk_size))]
 			Clusters,Index = self.merge_index(seed_vectors,Index,Clusters)
 			Clusters,Index = self.collapse_index(Index,Clusters)
-			print(ci,len(Clusters))
+			print(ci, len(Clusters))
 		return Index
 
 	def lsi_cluster_part(self,offsets,lsi,Index):

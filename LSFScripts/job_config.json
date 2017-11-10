@@ -128,12 +128,18 @@
                 "#SBATCH -p 1week",
                 "#SBATCH -o {0}Logs/KmerClusterIndex.out",
                 "#SBATCH -e {0}Logs/KmerClusterIndex.err",
-                "#SBATCH --mem=230G"],
+                "#SBATCH --mem=230G",
+                "module purge",
+                "module load Biopython",
+                "module load gensim"],
             "body": [
-                "kmer_cluster_index.py -i {0}hashed_reads/ -o {0}cluster_vectors/ -t 0.7",
-                "create_jobs.py -j KmerClusterParts -i ./","X=`sed -n 1p hashed_reads/hashParts.txt`",
-                "sed -i 's/%parts%/$X/g' LSFScripts/KmerClusterParts_ArrayJob.q","create_jobs.py -j LSFScripts/KmerClusterMerge -i ./","X=`sed -n 1p cluster_vectors/numClusters.txt`",
-                "sed -i 's/%clusters%/$X/g' LSFScripts/KmerClusterMerge_ArrayJob.q"]},
+                "kmer_cluster_index.py -i {0}hashed_reads/ -o {0}cluster_vectors/ -t 0.66",
+                "create_jobs.py -j KmerClusterParts -i ./",
+                "X=`sed -n 1p {0}hashed_reads/hashParts.txt`",
+                "sed -i \"s/%parts%/$X/g\" {0}jobs/KmerClusterParts_ArrayJob.q",
+                "create_jobs.py -j KmerClusterMerge -i ./",
+                "X=`sed -n 1p {0}cluster_vectors/numClusters.txt`",
+                "sed -i \"s/%clusters%/$X/g\" {0}jobs/KmerClusterMerge_ArrayJob.q"]},
 
         "KmerClusterParts": {
             "outfile": "KmerClusterParts_ArrayJob.q",
@@ -143,11 +149,11 @@
                 "#SBATCH -p htc",
                 "#SBATCH -o {0}Logs/KmerClusterParts-%a.out",
                 "#SBATCH -e {0}Logs/KmerClusterParts-%a.err",
-                "#SBATCH -R 'rusage[mem=1:argon_io=3]'",
-                "#SBATCH -M 4"],
+                "#SBATCH --mem-per-cpu=70G",
+                "module purge",
+                "module load Biopython"],
             "body": [
-                "sleep $(($SLURM_ARRAY_TASK_ID % 60))",
-                "kmer_cluster_part.py -r ${{SLURM_ARRAY_TASK_ID}} -i {0}hashed_reads/ -o {0}cluster_vectors/ -t 0.7"]},
+                "kmer_cluster_part.py -r ${{SLURM_ARRAY_TASK_ID}} -i {0}hashed_reads/ -o {0}cluster_vectors/ -t 0.66"]},
 
         "KmerClusterMerge": {
             "outfile": "KmerClusterMerge_ArrayJob.q",
@@ -157,10 +163,10 @@
                 "#SBATCH -p htc",
                 "#SBATCH -o {0}Logs/KmerClusterMerge-%a.out",
                 "#SBATCH -e {0}Logs/KmerClusterMerge-%a.err",
-                "#SBATCH -R 'rusage[mem=1]'",
-                "#SBATCH -M 8"],
+                "#SBATCH --mem-per-cpu=70G",
+                "module purge",
+                "module load Biopython"],
             "body": [
-                "sleep $(($SLURM_ARRAY_TASK_ID % 60))",
                 "kmer_cluster_merge.py -r ${{SLURM_ARRAY_TASK_ID}} -i {0}cluster_vectors/ -o {0}cluster_vectors/"]},
 
         "KmerClusterCols": {
@@ -170,8 +176,9 @@
                 "#SBATCH -p 1day",
                 "#SBATCH -o {0}Logs/KmerClusterCols.out",
                 "#SBATCH -e {0}Logs/KmerClusterCols.err",
-                "#SBATCH -R 'rusage[mem=40]'",
-                "#SBATCH -M 70"],
+                "#SBATCH --mem=230G",
+                "module purge",
+                "module load Biopython"],
             "body": [
                 "kmer_cluster_cols.py -i {0}hashed_reads/ -o {0}cluster_vectors/"]},
 
@@ -183,10 +190,10 @@
                 "#SBATCH -p 1week",
                 "#SBATCH -o {0}Logs/ReadPartitions-%a.out",
                 "#SBATCH -e {0}Logs/ReadPartitions-%a.err",
-                "#SBATCH -R 'rusage[mem=3:argon_io=3]'",
-                "#SBATCH -M 20"],
+                "#SBATCH --mem-per-cpu=70G",
+                "module purge",
+                "module load Biopython"],
             "body": [
-                "sleep $(($SLURM_ARRAY_TASK_ID % 60))",
                 "write_partition_parts.py -r ${{SLURM_ARRAY_TASK_ID}} -i {0}hashed_reads/ -o {0}cluster_vectors/ -t TMPDIR"]},
 
         "MergeIntermediatePartitions": {
@@ -197,10 +204,10 @@
                 "#SBATCH -p htc",
                 "#SBATCH -o {0}Logs/MergeIntermediatePartitions-%a.out",
                 "#SBATCH -e {0}Logs/MergeIntermediatePartitions-%a.err",
-                "#SBATCH -M 2",
-                "#SBATCH -R 'rusage[argon_io=3]'"],
+                "#SBATCH --mem-per-cpu=20G",
+                "module purge",
+                "module load Biopython"],
             "body": [
-                "sleep $(($SLURM_ARRAY_TASK_ID % 60))",
                 "merge_partition_parts.py -r ${{SLURM_ARRAY_TASK_ID}} -i {0}cluster_vectors/ -o {0}read_partitions/"]},
 
         "SplitPairs": {
@@ -211,10 +218,10 @@
                 "#SBATCH -p htc",
                 "#SBATCH -o {0}Logs/SplitPairs-%a.out",
                 "#SBATCH -e {0}Logs/SplitPairs-%a.err",
-                "#SBATCH -R 'rusage[argon_io=3]'",
-                "#SBATCH -M 8"],
+                "#SBATCH --mem-per-cpu=20G",
+                "module purge",
+                "module load Biopython"],
             "body": [
-                "sleep $(($SLURM_ARRAY_TASK_ID % 60))",
                 "split_read_pairs.py -r ${{SLURM_ARRAY_TASK_ID}} -i {0}read_partitions/ -o {0}read_partitions/"]},
 
         "PhylerClassify": {

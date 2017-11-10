@@ -47,15 +47,15 @@ if __name__ == "__main__":
 
     task_rank = args.task_rank - 1
 
-	FP = glob.glob(os.path.join(input_dir+str(task_rank),'*.npy'))
+	FP = glob.glob(os.path.join(input_dir + str(task_rank), '*.npy'))
 	if len(FP) > 0:
-		C = np.empty((10**9,),dtype=np.uint64)
+		C = np.empty((10**9,), dtype=np.uint64)
 		ci = 0
 		for fp in FP:
 			c = np.load(fp)
-			C[ci:ci+c.shape[0]] = c
+			C[ci:ci + c.shape[0]] = c
 			ci += c.shape[0]
 		np.save(output_dir+str(task_rank)+'.cluster.npy',C[:ci])
-		os.system('rm -r %s%d/' % (output_dir,task_rank))
+		os.system('rm -r {0}{1}/'.format(output_dir, task_rank))
 	else:
-		print 'NO FILES:',task_rank
+		print('NO FILES: ' + str(task_rank))

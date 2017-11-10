@@ -16,20 +16,14 @@ def interface():
                         dest='IN',
                         type=str,
                         metavar='<input_dir>',
-                        help='The directory containing the original reads.')
+                        help='The directory containing the hashed reads.')
 
     parser.add_argument('-o',
                         required=True,
                         dest='OUT',
                         type=str,
                         metavar='<output_dir>',
-                        help='The output directory for the hashed reads.')
-
-    parser.add_argument('-r',
-                        required=True,
-                        dest='task_rank',
-                        type=int,
-                        help='Task rank of the current job.')    
+                        help='Cluster vector directory to output the results.')   
 
     parser.add_argument('-t',
                         dest='threshold',
@@ -52,19 +46,19 @@ if __name__ == "__main__":
     if not output_dir.endswith('/'):
         output_dir += '/'
 
-    task_rank = args.task_rank - 1 
     thresh = args.threshold
 
-	hashobject = StreamingEigenhashes(input_dir,output_dir,get_pool=-1)
-	Kmer_Hash_Count_Files = glob.glob(os.path.join(hashobject.input_path,'*.count.hash.conditioned'))
-	hashobject.path_dict = {}
-
-	for i in range(len(Kmer_Hash_Count_Files)):
-		hashobject.path_dict[i] = Kmer_Hash_Count_Files[i]
-	lsi = models.LsiModel.load(hashobject.output_path + 'kmer_lsi.gensim')
-	hashobject.cluster_thresh = thresh
-	Index = hashobject.lsi_cluster_index(lsi)
-	np.save(hashobject.output_path + 'cluster_index.npy', Index)
-	print('Cluster index has shape: ' + str(Index.shape))
-	with open(hashobject.output_path + 'numClusters.txt', 'w') as f:
-	   f.write('%d\n' % Index.shape[0])
+    hashobject = StreamingEigenhashes(input_dir, output_dir, get_pool=-1)
+    Kmer_Hash_Count_Files = glob.glob(os.path.join(hashobject.input_path, '*.count.hash.conditioned'))
+    
+    hashobject.path_dict = {}
+    for i in range(len(Kmer_Hash_Count_Files)):
+        hashobject.path_dict[i] = Kmer_Hash_Count_Files[i]
+    
+    lsi = models.LsiModel.load(hashobject.output_path + 'kmer_lsi.gensim')
+    hashobject.cluster_thresh = thresh
+    Index = hashobject.lsi_cluster_index(lsi)
+    np.save(hashobject.output_path + 'cluster_index.npy', Index)
+    print('Cluster index has shape: ' + str(Index.shape))
+    with open(hashobject.output_path + 'numClusters.txt', 'w') as f:
+       f.write('{0}\n'.format(Index.shape[0]))
