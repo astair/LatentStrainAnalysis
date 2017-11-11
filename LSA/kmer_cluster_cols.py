@@ -45,12 +45,12 @@ if __name__ == "__main__":
     FP = [(int(fp[fp.rfind('/') + 1:fp.index('.cluster')]), fp) for fp in FP]
     I = np.load(hashobject.output_path + 'cluster_index.npy')
     I = I.shape[0]
-    cluster_sizes = np.zeros(I,dtype=np.uint64)
+    cluster_sizes = np.zeros(I, dtype=np.uint64)
     GW = np.load(hashobject.output_path + 'global_weights.npy')
     global_weight_sum = GW.sum(dtype=np.float64)
     CP = np.zeros(I)
-    X = np.zeros((2**hashobject.hash_size,5),dtype=np.int16)
-    Ix = np.zeros(2**hashobject.hash_size,dtype=np.int8)
+    X = np.zeros((2**hashobject.hash_size,5), dtype=np.int16)
+    Ix = np.zeros(2**hashobject.hash_size, dtype=np.int8)
     for i,fp in FP:
         c = np.load(fp)
         CP[i] = GW[c].sum(dtype=np.float64) / global_weight_sum
