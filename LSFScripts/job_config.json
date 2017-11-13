@@ -200,7 +200,7 @@
                 "module purge",
                 "module load Biopython"],
             "body": [
-                "write_partition_parts.py -r ${{SLURM_ARRAY_TASK_ID}} -i {0}hashed_reads/ -o {0}cluster_vectors/ -t TMPDIR"]},
+                "write_partition_parts.py -r ${{SLURM_ARRAY_TASK_ID}} -i {0}hashed_reads/ -o {0}cluster_vectors/ -t $TMPDIR"]},
 
         "MergeIntermediatePartitions": {
             "outfile": "MergeIntermediatePartitions_ArrayJob.q",

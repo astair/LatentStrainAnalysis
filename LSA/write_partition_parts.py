@@ -85,24 +85,23 @@ if __name__ == "__main__":
 
     task_rank = args.task_rank - 1
 
-
-	hashobject = Fastq_Reader(input_dir,output_dir)
-	cp = np.load(hashobject.output_path+'cluster_probs.npy')
+	hashobject = Fastq_Reader(input_dir, output_dir)
+	cp = np.load(hashobject.output_path + 'cluster_probs.npy')
 	cluster_probs = dict(enumerate(cp))
-	Hashq_Files = glob.glob(os.path.join(hashobject.input_path,'*.hashq.*'))
+	Hashq_Files = glob.glob(os.path.join(hashobject.input_path, '*.hashq.*'))
 	Hashq_Files = [fp for fp in Hashq_Files if '.tmp' not in fp]
 	Hashq_Files.sort()
 	infile = Hashq_Files[task_rank]
 	outpart = infile[-6:-3]
-	sample_id = infile[infile.rfind('/')+1:infile.index('.hashq')]
+	sample_id = infile[infile.rfind('/') + 1:infile.index('.hashq')]
 	tmp_dir += str(task_rank) + '/'
-	os.system('mkdir '+tmp_dir)
-	G = [open('%s%s.%s.cols.%d' % (tmp_dir,sample_id,outpart,i),'w') for i in range(0,2**hashobject.hash_size,2**hashobject.hash_size/50)]
+	os.system('mkdir ' + tmp_dir)
+	G = [open('{0}{1}.{2}.cols.{3}'.format(tmp_dir, sample_id, outpart, i), 'w') for i in range(0, 2**hashobject.hash_size, 2**hashobject.hash_size / 50)]
 	f = gzip.open(infile)
 	r_id = 0
 	for a in hashobject.hash_read_generator(f):
 		for x in a[2]:
-			G[int(x*50/2**hashobject.hash_size)].write('%d\t%d\n' % (x,r_id))
+			G[int(x * 50 / 2**hashobject.hash_size)].write('{0}\t{1}\n'.format(x, r_id))
 		r_id += 1
 	R = r_id
 	f.close()
@@ -111,34 +110,34 @@ if __name__ == "__main__":
 	if R < 50:
 		print 'Fewer than 50 reads...doing nothing'
 	else:
-		ClusterFile = open(hashobject.output_path+'cluster_cols.npy')
-		ValueFile = open(hashobject.output_path+'cluster_vals.npy')
-		G = [open('%s%s.%s.ids.%d' % (tmp_dir,sample_id,outpart,i),'w') for i in range(0,R,R/50)]
+		ClusterFile = open(hashobject.output_path + 'cluster_cols.npy')
+		ValueFile = open(hashobject.output_path + 'cluster_vals.npy')
+		G = [open('{0}{1}.{2}.ids.{3}'.format(tmp_dir, sample_id, outpart, i), 'w') for i in range(0, R, R / 50)]
 		# If sharing ClusterFile among many jobs is not practical, we may aggregate jobs below by 1/50 ClusterFile fractions across samples (so each job reads 1 fraction)
-		for i in range(0,2**hashobject.hash_size,2**hashobject.hash_size/50):
-			os.system('sort -nk 1 %s%s.%s.cols.%d -o %s%s.%s.cols.%d' % (tmp_dir,sample_id,outpart,i,tmp_dir,sample_id,outpart,i))
-			f = open('%s%s.%s.cols.%d' % (tmp_dir,sample_id,outpart,i))
-			ColId = np.fromfile(f,dtype=np.int64,sep='\t')
+		for i in range(0, 2**hashobject.hash_size, 2**hashobject.hash_size / 50):
+			os.system('sort -nk 1 {0}{1}.{3}.cols.{4} -o {0}{1}.{3}.cols.{4}'.format(tmp_dir, sample_id, outpart, i))
+			f = open('{0}{1}.{3}.cols.{4}'.format(tmp_dir, sample_id, outpart, i))
+			ColId = np.fromfile(f, dtype=np.int64, sep='\t')
 			f.close()
-			os.system('rm %s%s.%s.cols.%d' % (tmp_dir,sample_id,outpart,i))
-			C = np.fromfile(ClusterFile,dtype=np.int16,count=5*min(2**hashobject.hash_size/50,2**hashobject.hash_size-i))
-			V = np.fromfile(ValueFile,dtype=np.float32,count=min(2**hashobject.hash_size/50,2**hashobject.hash_size-i))
+			os.system('rm {0}{1}.{3}.cols.{4}'.format(tmp_dir, sample_id, outpart, i))
+			C = np.fromfile(ClusterFile, dtype=np.int16, count=5*min(2**hashobject.hash_size / 50, 2**hashobject.hash_size - i))
+			V = np.fromfile(ValueFile, dtype=np.float32, count=min(2**hashobject.hash_size / 50, 2**hashobject.hash_size - i))
 			c0 = None
 			outlines = [[] for _ in G]
-			for j in range(0,len(ColId),2):
-				col,id = ColId[j:j+2]
+			for j in range(0, len(ColId), 2):
+				col, id = ColId[j:j + 2]
 				if col != c0:
-					ci = col % (2**hashobject.hash_size/50)
-					c = C[ci*5:(ci+1)*5]
+					ci = col % (2**hashobject.hash_size / 50)
+					c = C[ci * 5:(ci + 1) * 5]
 					c = c[np.nonzero(c)[0]] - 1
 					c0 = col
 				if len(c) > 0:
 					v = V[ci]
-					newline = '%d\t%f' % (id,v)
+					newline = '{0}\t{1}'.format(id,v)
 					for x in c:
-						newline += '\t%d' % (x)
-					outlines[id*50/R].append(newline+'\n')
-			for g,l in zip(G,outlines):
+						newline += '\t{0}'.format(x)
+					outlines[id * 50 / R].append(newline + '\n')
+			for g, l in zip(G, outlines):
 				g.writelines(l)
 			del C
 			del V
@@ -146,27 +145,27 @@ if __name__ == "__main__":
 		ValueFile.close()
 		for g in G:
 			g.close()
-		for i in range(0,R,R/50):
-			os.system('sort -nk 1 %s%s.%s.ids.%d -o %s%s.%s.ids.%d' % (tmp_dir,sample_id,outpart,i,tmp_dir,sample_id,outpart,i))
+		for i in range(0, R, R / 50):
+			os.system('sort -nk 1 {0}{1}.{2}.ids.{3} -o {0}{1}.{2}.ids.{3}'.format(tmp_dir, sample_id, outpart, i))
 		f = gzip.open(infile)
 		r_id = 0
-		G = iter(open('%s%s.%s.ids.%d' % (tmp_dir,sample_id,outpart,i)) for i in range(0,R,R/50))
+		G = iter(open('{0}{1}.{2}.ids.{3}'.format(tmp_dir, sample_id, outpart, i)) for i in range(0, R, R / 50))
 		g = G.next()
-		id_vals = np.fromstring(g.readline(),sep='\t')
+		id_vals = np.fromstring(g.readline(), sep='\t')
 		EOF = False
 		CF = {}
 		reads_written = 0
 		unique_reads_written = 0
 		for a in hashobject.hash_read_generator(f):
 			while id_vals[0] < r_id:
-				id_vals = np.fromstring(g.readline(),sep='\t')
+				id_vals = np.fromstring(g.readline(), sep='\t')
 				# revert to gross old behavior
 				if len(id_vals) == 0:
 					id_vals = [-1]
 				if id_vals[0] == -1:
 					try:
 						g = G.next()
-						id_vals = np.fromstring(g.readline(),sep='\t')
+						id_vals = np.fromstring(g.readline(), sep='\t')
 						# revert to gross old behavior
 						if len(id_vals) == 0:
 							id_vals = [-1]
@@ -180,23 +179,23 @@ if __name__ == "__main__":
 				for clust in id_vals[2:]:
 					D[clust] += id_vals[1]
 				try:
-					id_vals = np.fromstring(g.readline(),sep='\t')
+					id_vals = np.fromstring(g.readline(), sep='\t')
 					# revert to gross old behavior
 					if len(id_vals) == 0:
 						id_vals = [-1]
 				except:
 					break
-			#best_clust = max_log_lik_ratio(D,cluster_probs)
+			#best_clust = max_log_lik_ratio(D, cluster_probs)
 			#if best_clust != None:
-			best_clusts = max_log_lik_ratio(D,cluster_probs)
+			best_clusts = max_log_lik_ratio(D, cluster_probs)
 			for best_clust in best_clusts:
 				if best_clust not in CF:
 					try:
-						CF[best_clust] = open('%s%d/%s.fastq.%s' % (hashobject.output_path,best_clust,sample_id,outpart),'a')
+						CF[best_clust] = open('{0}{1}/{2}.fastq.{3}'.format(hashobject.output_path, best_clust, sample_id, outpart), 'a')
 					except:
-						os.system('mkdir %s%d/' % (hashobject.output_path,best_clust))
-						CF[best_clust] = open('%s%d/%s.fastq.%s' % (hashobject.output_path,best_clust,sample_id,outpart),'a')
-				CF[best_clust].write(a[0]+'\n')
+						os.system('mkdir {0}{1}/'.format(hashobject.output_path,best_clust))
+						CF[best_clust] = open('{0}{1}/{2}.fastq.{3}'.format(hashobject.output_path, best_clust, sample_id, outpart), 'a')
+				CF[best_clust].write(a[0] + '\n')
 				reads_written += 1
 			if len(best_clusts) > 0:
 				unique_reads_written += 1
@@ -207,7 +206,7 @@ if __name__ == "__main__":
 			r_id += 1
 		for f in CF.values():
 			f.close()
-		os.system('rm -rf '+tmp_dir)
-		print 'total reads written:',reads_written
-		print 'unique reads written:',unique_reads_written
+		os.system('rm -rf ' + tmp_dir)
+		print('total reads written: ' + reads_written)
+		print('unique reads written: ' + unique_reads_written)
 		
