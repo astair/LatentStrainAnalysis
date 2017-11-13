@@ -48,13 +48,13 @@ def max_log_lik_ratio(s,bkg,h1_prob=0.8,thresh1=3.84,thresh2=np.inf):
 	LLR = [(None,None)]
 	read_match_sum = s[-1]
 	del s[-1]
-	v1 = read_match_sum*h1_prob*(1-h1_prob)
-	m1 = read_match_sum*h1_prob
+	v1 = read_match_sum * h1_prob * (1 - h1_prob)
+	m1 = read_match_sum * h1_prob
 	for k,sect_sum in s.items():
-		if sect_sum > read_match_sum*bkg[k]:
-			v2 = read_match_sum*bkg[k]*(1-bkg[k])
-			m2 = read_match_sum*bkg[k]
-			llr = np.log(v2**.5/v1**.5) + .5*((sect_sum-m2)**2/v2 - (sect_sum-m1)**2/v1)
+		if sect_sum > read_match_sum * bkg[k]:
+			v2 = read_match_sum * bkg[k] * (1 - bkg[k])
+			m2 = read_match_sum * bkg[k]
+			llr = np.log(v2**.5/v1**.5) + .5 * ((sect_sum-m2)**2/v2 - (sect_sum-m1)**2/v1)
 			LLR.append((llr,k))
 	LLR.sort(reverse=True)
 	K = []
