@@ -55,7 +55,7 @@ SplitInput_string = """#!/bin/bash
 #SBATCH -e {1}Logs/SplitInput-Err%I.err
 echo Date: `date`
 t1=`date +%s`
-${{LSF_SCRIPTS}}/array_merge.py -r ${{SLURM_ARRAY_TASK_ID}} -1 {2} -2 {3} -s {4} -o {1}original_reads/
+array_merge.py -r ${{SLURM_ARRAY_TASK_ID}} -1 {2} -2 {3} -s {4} -o {1}original_reads/
 echo Date: `date`
 t2=`date +%s`
 tdiff=`echo 'scale=3;('$t2'-'$t1')/3600' | bc`

@@ -193,7 +193,7 @@
             "header": [
                 "#SBATCH -J ReadPartitions[1-{array_size}]",
                 "#SBATCH --array=1-{array_size}",
-                "#SBATCH -p 1week",
+                "#SBATCH -p 1day",
                 "#SBATCH -o {0}Logs/ReadPartitions-%a.out",
                 "#SBATCH -e {0}Logs/ReadPartitions-%a.err",
                 "#SBATCH --mem-per-cpu=70G",
@@ -211,7 +211,7 @@
                 "#SBATCH -p htc",
                 "#SBATCH -o {0}Logs/MergeIntermediatePartitions-%a.out",
                 "#SBATCH -e {0}Logs/MergeIntermediatePartitions-%a.err",
-                "#SBATCH --mem-per-cpu=20G",
+                "#SBATCH --mem-per-cpu=70G",
                 "module purge",
                 "module load Biopython"],
             "body": [

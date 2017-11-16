@@ -103,7 +103,7 @@ if __name__ == "__main__":
         with gzip.open(hashobject.output_path + file_prefix + '.hashq' + file_split + '.gz', 'wt') as g:
                 IDs = []
                 reads_hashed = 0
-                IDs, bins = hashobject.generator_to_bins(Fq.fastq_generator(f, max_reads=25000), rc=do_reverse_compliment)
+                IDs, bins = hashobject.generator_to_bins(Fq.fastq_generator(f), rc=do_reverse_compliment)
                 for b in range(len(bins)):
                     reads_hashed += kmer_bins(bins[b], IDs, g)
 

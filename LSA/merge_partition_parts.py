@@ -28,13 +28,14 @@ def interface():
                         type=int,
                         help='Task rank of the current job.')    
 
-    parser.add_argument('-t',
-                        dest='threshold',
-                        type=float,
-                        help='Threshold.')
-
     args = parser.parse_args()
     return args
+
+
+def unique(array):
+    seen = set()
+    seen_add = seen.add
+    return [x for x in array if not (x in seen or seen_add(x))]
 
 
 # MAIN
@@ -51,14 +52,15 @@ if __name__ == "__main__":
 
     task_rank = args.task_rank - 1 
 
-	task_rank = str(task_rank)+'/'
-	os.system('mkdir '+output_dir+task_rank)
-	FP = glob.glob(os.path.join(input_dir+task_rank,'*.fastq.*'))
-	FPl = list(set([fp[fp.rfind('/')+1:fp.index('.fastq')] for fp in FP]))
-	for group in FPl:
-		gp = [fp for fp in FP if input_dir+task_rank+group+'.fastq' == fp[:fp.rfind('.')]]
-		#gp = [fp for fp in gp if '.empty' not in fp]
-		if len(gp) > 0:
-			os.system('cat '+' '.join(gp)+' > '+output_dir+task_rank+group+'.fastq')
-			#os.system('touch %s.empty' % (gp[0]))
-			os.system('rm '+' '.join(gp))
+    task_rank = str(float(task_rank)) + '/'
+
+    os.system('mkdir ' + output_dir + task_rank)
+    FP = glob.glob(os.path.join(input_dir + task_rank, '*.fastq.*'))
+    FPl = list(unique([fp[fp.rfind('/') + 1:fp.index('.fastq')] for fp in FP]))
+    for group in FPl:
+        gp = [fp for fp in FP if input_dir + task_rank + group + '.fastq' == fp[:fp.rfind('.')]]
+        # gp = [fp for fp in gp if '.empty' not in fp]
+        if len(gp) > 0:
+            os.system('cat ' + ' '.join(gp) + ' > ' + output_dir + task_rank + group + '.fastq')
+            # os.system('touch %s.empty' % (gp[0]))
+            # os.system('rm ' + ' '.join(gp))

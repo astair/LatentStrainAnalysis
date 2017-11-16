@@ -20,14 +20,14 @@ def interface():
                         dest='IN',
                         type=str,
                         metavar='<input_dir>',
-                        help='The directory containing the original reads.')
+                        help='The directory containing the hashed reads.')
 
     parser.add_argument('-o',
                         required=True,
                         dest='OUT',
                         type=str,
                         metavar='<output_dir>',
-                        help='The output directory for the hashed reads.')
+                        help='The output directory to write the partitioned read IDs.')
 
     parser.add_argument('-t',
                         required=True,

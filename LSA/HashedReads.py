@@ -59,19 +59,19 @@ def hash_read_parser(infile):
             bins = [int(b) for b in info[1:]]
             yield HashedRead(name, k, bins)
 
-def hash_read_generator(f, max_reads=10**10):
+def hash_read_generator(f, max_reads=10**15):
     """Reads max_reads from an open HASHQ file and returns a HashedRead object iterator
     """
 
     n = 0
     while n <= max_reads:
-        name = str(f.readline().strip())
+        name = f.readline().strip()
         if not name:
             break
 
         line = f.readline().strip()
         k = int(line)
-        line = str(f.readline().strip())
+        line = f.readline().strip()
         bins = np.fromstring(line, dtype=np.uint64, sep=',')
         n += 1
         yield HashedRead(name, k, bins)

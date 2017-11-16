@@ -56,7 +56,7 @@ def fastq_generator(f, max_reads=10**15):
     """Reads max_reads from an open FASTQ file and returns a FastqRecord object iterator
     """
 
-    for n in range(max_reads):
+    while n <= max_reads:
         name = f.readline().strip()
         if not name:
             break
@@ -64,6 +64,7 @@ def fastq_generator(f, max_reads=10**15):
         seq = f.readline().strip()
         name2 = f.readline().strip()
         qual = f.readline().strip()
+        n += 1
         yield FastqRecord(name, seq, name2, qual)
 
 def get_record(infile, position):
