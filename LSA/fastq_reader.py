@@ -33,28 +33,7 @@ class Fastq_Reader(Cluster_Analysis,Hash_Counting,Hyper_Sequences,LSA):
             self.hash_size = new_hash[0]
             self.kmer_size = new_hash[1]
 
-    def hash_read_generator(self,file_object,max_reads=10**15,newline='\n'):
-        line = file_object.readline().strip()
-        lastlinechar = ''
-        read_strings = []
-        r = 0
-        while line and (r < max_reads):
-            # read_id (always) and quality (sometimes) begin with '@', but quality preceded by '+' 
-            if line.startswith(b'@') and (lastlinechar != '+'):
-                if len(read_strings) == 5:
-                    try:
-                        I = newline.join(read_strings[:-1])
-                        B = np.fromstring(read_strings[-1][10:-2],dtype=np.uint64,sep=',')
-                        yield (I,B[0],B[1:])
-                    except Exception as err:
-                        print(str(err))
-                    r += 1
-                read_strings = []
-            read_strings.append(line)
-            lastlinechar = line[0]
-            line = file_object.readline().strip()
-
-    def rand_kmers_for_wheel(self,total_kmers):
+    def rand_kmers_for_wheel(self,total_kmers,max_reads=10**6):
         read_files = glob.glob(os.path.join(self.input_path, '*.fastq.*'))
         if len(read_files) > 100:
             import random
@@ -65,40 +44,31 @@ class Fastq_Reader(Cluster_Analysis,Hash_Counting,Hyper_Sequences,LSA):
 
         kmers_per_file = max(total_kmers / len(read_files), 5)
 
+        print("Creating {0} k-mers per file for {1} files.". format(kmers_per_file, len(read_files)))
+
         with open(self.input_path + 'random_kmers.fastq', 'w') as g:
             kmer_count = 0
             for file in read_files:
                 written_kmers = 0
-                while written_kmers < kmers_per_file:
-                    g.write(self.rand_kmer(file))
-                    written_kmers += 1
+                rand_arr = np.array([random.randint(0, max_reads) for x in range(kmers_per_file)])
+                rand_arr.sort()
+                fastq = Fq.fastq_parser(file)
+                count = 0
+
+                for r in rand_arr:
+                    for record in fastq:
+                        if count == r:
+                            if record.is_valid() and len(record.seq) > self.kmer_size:
+                                g.write(self.rand_kmer(record))
+                                written_kmers += 1
+                                break
+                        count += 1
+
                 kmer_count += written_kmers
                 if kmer_count > total_kmers:
                     break
 
-    def rand_kmer(self,f,max_seek=4000000):
-        too_short = 0
-        max_sampling = 100000
-        while True:
-            # Try retrieving random record, except max_seek exceedes file
-            try:
-                rand_i = randint(0, max_seek)
-                record = Fq.get_record(f, rand_i)
-                if record.is_valid() and len(record.seq) > self.kmer_size:
-                    break
-                # Handle too short or invalid sequences
-                if len(record.seq) < self.kmer_size:
-                    too_short += 1
-                    if too_short > max_sampling:
-                        raise Exception('ERROR: something went wrong while generating random kmers. All of the {1} reads that were sampled were shorter than the set kmer size ({0})'.format(self.kmer_size, max_sampling))
-                if not record.is_valid():
-                    print(invalid_message.format(f, record.name, rand_i))
-            # Narrow it down and raise error if we are down to 0
-            except:
-                max_seek /= 10
-                if max_seek == 0:
-                    print('ERROR: something went wrong while generating random kmers. Your read file might be too short or in the wrong format.')
-                    raise 
 
-        rand_pos = min(20, randint(0, len(record.seq) - self.kmer_size))
-        return '\n'.join([record.name, record.seq[rand_pos:rand_pos + self.kmer_size], record.name2, record.qual[rand_pos:rand_pos + self.kmer_size]]) + '\n'
+    def rand_kmer(self,fastq_record):
+        rand_pos = min(20, randint(0, len(fastq_record.seq) - self.kmer_size))
+        return '\n'.join([fastq_record.name, fastq_record.seq[rand_pos:rand_pos + self.kmer_size], fastq_record.name2, fastq_record.qual[rand_pos:rand_pos + self.kmer_size]]) + '\n'

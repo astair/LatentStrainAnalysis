@@ -72,15 +72,14 @@ def split_singletons(sing_path, out_prefix):
     ss = 0
     i = 0
     reads_written = 0
-    f1 = open_gz(sing_path)
-
-    for line in f1:
-        if i % 4000000 == 0:
-            f0 = gzip.open(out_prefix + '.singleton.fastq' + split_suffix[ss], 'wt')
-            ss += 1
-        f0.write(line)
-        reads_written += .25
-        i += 1
+    with open_gz(sing_path) as fin:
+        for line in fin:
+            if i % 4000000 == 0:
+                fout = gzip.open(out_prefix + '.singleton.fastq' + split_suffix[ss], 'wt')
+                ss += 1
+            fout.write(line)
+            reads_written += .25
+            i += 1
     return reads_written
 
 

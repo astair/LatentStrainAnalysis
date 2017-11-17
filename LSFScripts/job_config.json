@@ -20,10 +20,10 @@
             "header": [
                 "#SBATCH -J HashReads[1-{array_size}]",
                 "#SBATCH --array=1-{array_size}",
-                "#SBATCH -p 1day",
+                "#SBATCH -p 1week",
                 "#SBATCH -o {0}Logs/HashReads%a.out",
                 "#SBATCH -e {0}Logs/HashReads%a.err",
-                "#SBATCH -t 02:00:00",
+                "#SBATCH -t 7-00:00:00",
                 "module purge",
                 "module load Biopython"],
             "body": [
