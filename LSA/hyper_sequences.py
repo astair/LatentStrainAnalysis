@@ -31,6 +31,10 @@ class Hyper_Sequences(LSA):
 		ltc = {'A': complex(-1,0),'T': complex(1,0),'C': complex(0,-1),'G': complex(0,1)}
 		return np.array([ltc.get(l, complex(0,0)) for l in S.seq]) * self.quality_to_prob(S.qual)
 
+	def quality_to_prob(self,Q):
+		Q = [self.quality_codes[c] for c in Q]
+		return np.array([1-10**(-q/10.) for q in Q])
+
 	def coords_to_bins(self,A,C,reverse_compliments=True):
 		self.get_wheels()
 		num_wheels = self.Wheels[-1]['w'] + 1
@@ -51,10 +55,6 @@ class Hyper_Sequences(LSA):
 	def pick_one_from_rc_pair(self,b1,b2,mx=1000000):
 		B = [np.array([b1[i],b2[i]]) for i in range(len(b1))]
 		return [b[np.mod(b,mx).argmin(0),range(b.shape[1])] for b in B]
-
-	def quality_to_prob(self,Q):
-		Q = [self.quality_codes[c] for c in Q]
-		return np.array([1-10**(-q/10.) for q in Q])
 
 	def set_wheels(self,wheels=200):
 		random_kmer_path = self.input_path + 'random_kmers.fastq'
