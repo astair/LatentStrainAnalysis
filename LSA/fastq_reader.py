@@ -9,10 +9,6 @@ from hash_counting import Hash_Counting
 from cluster_analysis import Cluster_Analysis
 import Fastq as Fq
 
-invalid_message = ''''The following read record is not valid:
-    File: {0}
-    ID: {1}
-    Position: {2}'''
 
 class Fastq_Reader(Cluster_Analysis,Hash_Counting,Hyper_Sequences,LSA):
 
