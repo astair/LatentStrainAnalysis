@@ -56,6 +56,7 @@ def fastq_generator(f, max_reads=10**15):
     """Reads max_reads from an open FASTQ file and returns a FastqRecord object iterator
     """
 
+    n = 0
     while n <= max_reads:
         name = f.readline().strip()
         if not name:

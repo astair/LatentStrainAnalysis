@@ -76,10 +76,7 @@ class Hyper_Sequences(LSA):
 			for i in range(len(coords) - self.kmer_size + 1):
 				IDs.append(ID)
 				hyper_kmers.append(coords[i:i + self.kmer_size])
-		# if len(IDs) > 0:
 		return self.coords_to_bins(IDs,hyper_kmers,reverse_compliments=rc)
-		# else:
-		# 	return None,None
 
 	def one_wheel(self,w,reads_file):
 		S = []
