@@ -40,8 +40,6 @@ class Fastq_Reader(Cluster_Analysis,Hash_Counting,Hyper_Sequences,LSA):
 
         kmers_per_file = max(total_kmers / len(read_files), 5)
 
-        print("Creating {0} k-mers per file for {1} files.". format(kmers_per_file, len(read_files)))
-
         with open(self.input_path + 'random_kmers.fastq', 'w') as g:
             kmer_count = 0
             for file in read_files:

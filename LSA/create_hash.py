@@ -58,10 +58,10 @@ if __name__ == "__main__":
 
     hashobject = Fastq_Reader(input_dir, output_dir, new_hash=(h_size, k_size))
     total_rand_kmers = k_size * h_size * 2
-    print('Creating {0} random k-mers in total.'.format(total_rand_kmers))
+    print('[CreateHash] Creating {0} random k-mers in total.'.format(total_rand_kmers))
     # Change max_reads to variable in future
     hashobject.rand_kmers_for_wheel(total_rand_kmers, max_reads=10**6)
-    print('Setting hash function.')
+    print('[CreateHash] Setting hash function.')
     hashobject.set_wheels(wheels=1)
     os.remove(input_dir + 'random_kmers.fastq')
     with open(output_dir + 'hashParts.txt','w') as f:

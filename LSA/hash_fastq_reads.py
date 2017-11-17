@@ -103,8 +103,12 @@ if __name__ == "__main__":
         with gzip.open(hashobject.output_path + file_prefix + '.hashq' + file_split + '.gz', 'wt') as g:
                 IDs = []
                 reads_hashed = 0
+                print("[HashFastqReads] Starting to hash the reads.")
                 IDs, bins = hashobject.generator_to_bins(Fq.fastq_generator(f), rc=do_reverse_compliment)
+
+                print("[HashFastqReads] All k-mers hashed.")
+                print("[HashFastqReads] Writing hashed reads to file.")
                 for b in range(len(bins)):
                     reads_hashed += kmer_bins(bins[b], IDs, g)
 
-                print('Total reads hashed: ' + str(reads_hashed))
+                print("[HashFastqReads] Total reads hashed: " + str(reads_hashed))

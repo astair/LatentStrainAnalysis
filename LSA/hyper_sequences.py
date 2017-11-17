@@ -13,10 +13,12 @@ class Hyper_Sequences(LSA):
 	def generator_to_bins(self,sequence_generator,rc=True):
 		IDs = []
 		hyper_kmers = []
+		print("[HyperSequences] Calculating hyper-coordinates for k-mers.")
 		for ID, coords in self.generator_to_coords(sequence_generator):
 			for i in range(len(coords) - self.kmer_size + 1):
 				IDs.append(ID)
 				hyper_kmers.append(coords[i:i + self.kmer_size])
+		print("[HyperSequences] Binning the k-mers.")
 		return self.coords_to_bins(IDs, hyper_kmers, reverse_compliments=rc)
 
 	def generator_to_coords(self,sequence_generator):
