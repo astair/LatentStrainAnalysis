@@ -99,7 +99,7 @@ if __name__ == "__main__":
 
     with Fq.open_gz(reads_file_name) as f:
         hashobject.quality_codes = Fq.set_quality_codes(reads_file_name)
-        print(hashobject.output_path + file_prefix + '.hashq' + file_split + '.gz')
+        print(reads_file_name)
         with gzip.open(hashobject.output_path + file_prefix + '.hashq' + file_split + '.gz', 'wt') as g:
                 IDs = []
                 reads_hashed = 0

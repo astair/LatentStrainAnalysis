@@ -50,7 +50,8 @@ if __name__ == "__main__":
 
     hashobject = StreamingEigenhashes(input_dir, output_dir, get_pool=False)
     Kmer_Hash_Count_Files = glob.glob(os.path.join(hashobject.input_path,'*.count.hash'))
-    print(Kmer_Hash_Count_Files)
-    # M = np.load(hashobject.input_path+'column_mask.npy')
+    # M = np.load(hashobject.input_path + 'column_mask.npy')
     M = []
+    print("[KmerCorpus] Computing kmer corpus.")
     hashobject.kmer_corpus_to_disk(Kmer_Hash_Count_Files[task_rank], mask=M)
+    print("[KmerCorpus] Done.")
