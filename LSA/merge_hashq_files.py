@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
-import sys
 import argparse
+import sys
 import glob
 import os
 from fastq_reader import Fastq_Reader
@@ -11,21 +11,18 @@ def interface():
     parser = argparse.ArgumentParser(description="Creates the hash function.")
 
     parser.add_argument('-i',
-                        required=True,
                         dest='IN',
                         type=str,
                         metavar='<input_dir>',
                         help='The input directory.')
 
     parser.add_argument('-o',
-                        required=True,
                         dest='OUT',
                         type=str,
                         metavar='<output_dir>',
                         help='The output directory.')
 
     parser.add_argument('-r',
-                        required=True,
                         dest='task_rank',
                         type=int,
                         help='Task rank of the current job.')

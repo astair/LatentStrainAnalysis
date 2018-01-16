@@ -37,7 +37,6 @@ def interface():
                         help='Task rank of the current job.')
 
     parser.add_argument('-o', '--output-dir',
-                        required=True,
                         dest='out',
                         type=str,
                         metavar='<output-directory>',
